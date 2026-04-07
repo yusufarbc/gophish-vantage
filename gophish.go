@@ -41,6 +41,7 @@ import (
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/middleware"
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/scanner"
 	"github.com/gophish/gophish/webhook"
 )
 
@@ -116,6 +117,9 @@ func main() {
 	adminConfig := conf.AdminConf
 	adminServer := controllers.NewAdminServer(adminConfig, adminOptions...)
 	middleware.Store.Options.Secure = adminConfig.UseTLS
+
+	// Initialize scanner hub for WebSocket log streaming
+	scanner.InitScannerHub()
 
 	phishConfig := conf.PhishConf
 	phishServer := controllers.NewPhishingServer(phishConfig)

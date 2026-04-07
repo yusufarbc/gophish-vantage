@@ -19,6 +19,7 @@ import (
 	mid "github.com/gophish/gophish/middleware"
 	"github.com/gophish/gophish/middleware/ratelimit"
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/scanner"
 	"github.com/gophish/gophish/util"
 	"github.com/gophish/gophish/worker"
 	"github.com/gorilla/csrf"
@@ -137,6 +138,10 @@ func (as *AdminServer) registerRoutes() {
 	router.HandleFunc("/users", mid.Use(as.UserManagement, mid.RequirePermission(models.PermissionModifySystem), mid.RequireLogin))
 	router.HandleFunc("/webhooks", mid.Use(as.Webhooks, mid.RequirePermission(models.PermissionModifySystem), mid.RequireLogin))
 	router.HandleFunc("/impersonate", mid.Use(as.Impersonate, mid.RequirePermission(models.PermissionModifySystem), mid.RequireLogin))
+
+	// ── FINAL SCANNER ROUTER ───────────────────────────────────────────────────────
+	// Vantage security scanning subsystem routes
+	router.HandleFunc("/ws/scanner/logs", mid.Use(scanner.ScannerWSHandler, mid.RequireLogin))
 	// Create the API routes
 	api := api.NewServer(
 		api.WithWorker(as.worker),
@@ -198,9 +203,13 @@ func newTemplateParams(r *http.Request) templateParams {
 
 // Base handles the default path and template execution
 func (as *AdminServer) Base(w http.ResponseWriter, r *http.Request) {
-	params := newTemplateParams(r)
-	params.Title = "Dashboard"
-	getTemplate(w, "dashboard").ExecuteTemplate(w, "base", params)
+	// Render the new Vantage Tailwind dashboard
+	w.Header().Set("Content-Type", "text/html")
+	params := map[string]interface{}{
+		"Token": csrf.Token(r),
+		"User":  ctx.Get(r, "user"),
+	}
+	getTemplate(w, "vantage_dashboard").ExecuteTemplate(w, "vantage_dashboard", params)
 }
 
 // Campaigns handles the default path and template execution

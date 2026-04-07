@@ -1,0 +1,64 @@
+{
+    email admin@{$DOMAIN}
+    auto_https off_untrusted_tls
+}
+
+# Gophish Admin Dashboard (with Basic Auth)
+{$DOMAIN} {
+    # Basic Auth protection
+    basicauth /* {
+        admin {$VANTAGE_PASSWORD_HASH}
+    }
+
+    # Reverse proxy to Gophish admin server
+    reverse_proxy gophish-app:3333 {
+        header_uri /login /admin/login
+    }
+
+    # WebSocket support for real-time scanner logs
+    handle /ws/scanner/logs {
+        reverse_proxy gophish-app:3333
+    }
+
+    # API endpoint forwarding
+    handle /api/* {
+        reverse_proxy gophish-app:3333
+    }
+
+    log {
+        output file /var/log/caddy/gophish-admin.log {
+            roll_size 100mb
+            roll_keep 7
+        }
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Enable gzip compression
+    encode gzip
+}
+
+# Phishing Landing Pages (Open to public)
+phish.{$DOMAIN},
+landing.{$DOMAIN} {
+    reverse_proxy gophish-app:80 {
+        header_uri /admin /.admin
+        strip_prefix /phish
+    }
+
+    log {
+        output file /var/log/caddy/gophish-phishing.log
+    }
+}
+
+# Health check endpoint (no auth)
+health.{$DOMAIN} {
+    respond "OK" 200
+}
