@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os/exec"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gophish/gophish/models"
 	"github.com/gophish/gophish/pkg/network"
 	"github.com/gorilla/websocket"
 )
@@ -166,9 +168,15 @@ func emitLog(msg string) {
 // When ifaceName is non-empty, the interface flag is injected into the tool CLI args
 // (supported: naabu). For tools that use the OS routing table (nuclei, httpx), a
 // route-existence warning is emitted but execution is not blocked.
-func RunScannerTool(toolName, target, ifaceName string, extraFlags []string) error {
+func RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, extraFlags []string) error {
+	if err := ensureInterfaceForScan(toolName, target, ifaceName); err != nil {
+		return err
+	}
 	if err := scanState.AcquireLock(toolName, target); err != nil {
 		return err
+	}
+	if _, err := models.UpsertTargetAsset(userID, target, "manual", "manual", "", ifaceName); err != nil {
+		emitLog(fmt.Sprintf("[WARN] target upsert failed for %s: %v", target, err))
 	}
 
 	go func() {
@@ -177,14 +185,14 @@ func RunScannerTool(toolName, target, ifaceName string, extraFlags []string) err
 				emitLog(fmt.Sprintf("[FATAL] Scanner panic in %s: %v", toolName, r))
 				log.Printf("[scanner] panic recovered: %v", r)
 			}
+			_ = models.UpdateScanTaskProgress(scanID, "done", 100)
 			scanState.ReleaseLock()
 		}()
-		if ifaceName != "" {
-			verifyRouteBeforeScan(target, ifaceName)
-		}
+		_ = models.UpdateScanTaskProgress(scanID, "running", 20)
 		args := buildScannerArgs(toolName, target, ifaceName, extraFlags)
 		emitLog(fmt.Sprintf("[VANTAGE] ▶ Starting %s on target=%s (iface=%s)", strings.ToUpper(toolName), target, ifaceName))
-		runAndStreamTool(context.Background(), toolName, args)
+		runAndStreamTool(context.Background(), userID, toolName, target, ifaceName, args)
+		_ = models.UpdateScanTaskProgress(scanID, "running", 90)
 		emitLog(fmt.Sprintf("[VANTAGE] ✔ %s finished", strings.ToUpper(toolName)))
 	}()
 
@@ -193,9 +201,15 @@ func RunScannerTool(toolName, target, ifaceName string, extraFlags []string) err
 
 // RunDiscovery chains: subfinder → httpx → nuclei
 // ifaceName optionally routes traffic through a specific interface for naabu.
-func RunDiscovery(target, ifaceName string) error {
+func RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
+	if err := ensureInterfaceForScan("discovery", target, ifaceName); err != nil {
+		return err
+	}
 	if err := scanState.AcquireLock("discovery", target); err != nil {
 		return err
+	}
+	if _, err := models.UpsertTargetAsset(userID, target, "manual", "manual", "", ifaceName); err != nil {
+		emitLog(fmt.Sprintf("[WARN] target upsert failed for %s: %v", target, err))
 	}
 
 	go func() {
@@ -204,13 +218,15 @@ func RunDiscovery(target, ifaceName string) error {
 				emitLog(fmt.Sprintf("[FATAL] Discovery chain panic: %v", r))
 				log.Printf("[scanner] discovery panic recovered: %v", r)
 			}
+			_ = models.UpdateScanTaskProgress(scanID, "done", 100)
 			scanState.ReleaseLock()
 		}()
 		emitLog("[VANTAGE] ═══ DISCOVERY MODE ══════════════════════════")
+		_ = models.UpdateScanTaskProgress(scanID, "running", 10)
 
 		// Phase 1: Subdomain enumeration
 		emitLog("[VANTAGE] Phase 1 — Subdomain Enumeration (subfinder)")
-		subdomains := collectTargets(context.Background(), "subfinder",
+		subdomains := collectTargets(context.Background(), userID, "subfinder", target, ifaceName,
 			[]string{"subfinder", "-d", target, "-json", "-silent"})
 		if len(subdomains) == 0 {
 			subdomains = []string{target}
@@ -218,17 +234,19 @@ func RunDiscovery(target, ifaceName string) error {
 		} else {
 			emitLog(fmt.Sprintf("[VANTAGE] ✓ Found %d subdomains", len(subdomains)))
 		}
+		_ = models.UpdateScanTaskProgress(scanID, "running", 35)
 
 		// Phase 2: HTTP probing
 		emitLog("[VANTAGE] Phase 2 — HTTP Service Discovery (httpx)")
 		aliveArgs := append([]string{"httpx", "-json", "-silent"}, hostToArgs(subdomains)...)
-		alive := collectTargets(context.Background(), "httpx", aliveArgs)
+		alive := collectTargets(context.Background(), userID, "httpx", target, ifaceName, aliveArgs)
 		if len(alive) == 0 {
 			alive = subdomains
 			emitLog("[VANTAGE] No alive HTTP services found, falling back to subdomains")
 		} else {
 			emitLog(fmt.Sprintf("[VANTAGE] ✓ Found %d alive hosts", len(alive)))
 		}
+		_ = models.UpdateScanTaskProgress(scanID, "running", 60)
 
 		// Phase 3: Vulnerability scan
 		emitLog(fmt.Sprintf("[VANTAGE] Phase 3 — Vulnerability Scan (nuclei) - %d targets", len(alive)))
@@ -236,11 +254,74 @@ func RunDiscovery(target, ifaceName string) error {
 			host = strings.TrimSpace(host)
 			if host != "" {
 				args := []string{"nuclei", "-u", host, "-json", "-silent"}
-				runAndStreamTool(context.Background(), "nuclei", args)
+				runAndStreamTool(context.Background(), userID, "nuclei", host, ifaceName, args)
 			}
 		}
+		_ = models.UpdateScanTaskProgress(scanID, "running", 90)
 
 		emitLog("[VANTAGE] ═══ DISCOVERY COMPLETE ════════════════════════")
+	}()
+
+	return nil
+}
+
+// RunTask executes multiple PD tools for a single task either sequentially or in parallel.
+func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, parallel bool, extraFlags []string) error {
+	if len(tools) == 0 {
+		return fmt.Errorf("no tools selected")
+	}
+	if err := ensureInterfaceForScan("task", target, ifaceName); err != nil {
+		return err
+	}
+	if err := scanState.AcquireLock("task", target); err != nil {
+		return err
+	}
+	if _, err := models.UpsertTargetAsset(userID, target, "manual", "manual", "", ifaceName); err != nil {
+		emitLog(fmt.Sprintf("[WARN] target upsert failed for %s: %v", target, err))
+	}
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				emitLog(fmt.Sprintf("[FATAL] Task panic: %v", r))
+			}
+			_ = models.UpdateScanTaskProgress(scanID, "done", 100)
+			scanState.ReleaseLock()
+		}()
+
+		emitLog(fmt.Sprintf("[VANTAGE] ▶ Task started with %d tools on %s", len(tools), target))
+		_ = models.UpdateScanTaskProgress(scanID, "running", 5)
+
+		if parallel {
+			var wg sync.WaitGroup
+			for _, tool := range tools {
+				tool = strings.TrimSpace(strings.ToLower(tool))
+				if tool == "" {
+					continue
+				}
+				wg.Add(1)
+				go func(t string) {
+					defer wg.Done()
+					args := buildScannerArgs(t, target, ifaceName, extraFlags)
+					runAndStreamTool(context.Background(), userID, t, target, ifaceName, args)
+				}(tool)
+			}
+			wg.Wait()
+		} else {
+			total := len(tools)
+			for i, tool := range tools {
+				tool = strings.TrimSpace(strings.ToLower(tool))
+				if tool == "" {
+					continue
+				}
+				stepProgress := 10 + int(float64(i)/float64(total)*80)
+				_ = models.UpdateScanTaskProgress(scanID, "running", stepProgress)
+				emitLog(fmt.Sprintf("[VANTAGE] ▶ Task step %d/%d: %s", i+1, total, strings.ToUpper(tool)))
+				args := buildScannerArgs(tool, target, ifaceName, extraFlags)
+				runAndStreamTool(context.Background(), userID, tool, target, ifaceName, args)
+			}
+		}
+		emitLog("[VANTAGE] ✔ Task completed")
 	}()
 
 	return nil
@@ -249,7 +330,7 @@ func RunDiscovery(target, ifaceName string) error {
 // ── Internal Helpers ───────────────────────────────────────────────────────────
 
 // runAndStreamTool executes a command and streams output to WebSocket + logs.
-func runAndStreamTool(ctx context.Context, toolName string, args []string) {
+func runAndStreamTool(ctx context.Context, userID int64, toolName, scanTarget, ifaceName string, args []string) {
 	if len(args) == 0 {
 		return
 	}
@@ -284,6 +365,7 @@ func runAndStreamTool(ctx context.Context, toolName string, args []string) {
 		for scanner.Scan() {
 			line := scanner.Text()
 			emitLog(fmt.Sprintf("[%s] %s", strings.ToUpper(toolName), line))
+			persistToolLine(userID, toolName, scanTarget, ifaceName, line)
 		}
 	}()
 
@@ -305,7 +387,7 @@ func runAndStreamTool(ctx context.Context, toolName string, args []string) {
 }
 
 // collectTargets runs a command and collects "target" fields from JSON output.
-func collectTargets(ctx context.Context, parseAs string, args []string) []string {
+func collectTargets(ctx context.Context, userID int64, parseAs, scanTarget, ifaceName string, args []string) []string {
 	var targets []string
 	var mu sync.Mutex
 
@@ -342,10 +424,16 @@ func collectTargets(ctx context.Context, parseAs string, args []string) []string
 		for scanner.Scan() {
 			line := scanner.Text()
 			emitLog(fmt.Sprintf("[%s] %s", strings.ToUpper(parseAs), line))
+			persistToolLine(userID, parseAs, scanTarget, ifaceName, line)
 
 			var obj map[string]interface{}
 			if err := json.Unmarshal([]byte(line), &obj); err == nil {
 				if target := extractTarget(parseAs, obj); target != "" {
+					if parseAs == "subfinder" || parseAs == "uncover" {
+						if err := models.UpsertDiscoveredTarget(userID, target, parseAs); err != nil {
+							emitLog(fmt.Sprintf("[WARN] discovered target upsert failed for %s: %v", target, err))
+						}
+					}
 					mu.Lock()
 					targets = append(targets, target)
 					mu.Unlock()
@@ -366,6 +454,67 @@ func collectTargets(ctx context.Context, parseAs string, args []string) []string
 	wg.Wait()
 	cmd.Wait()
 	return targets
+}
+
+func persistToolLine(userID int64, toolName, scanTarget, ifaceName, line string) {
+	var obj map[string]interface{}
+	if err := json.Unmarshal([]byte(line), &obj); err != nil {
+		return
+	}
+	target := extractTarget(toolName, obj)
+	if target == "" {
+		target = scanTarget
+	}
+	severity := extractString(obj, "severity")
+	templateID := extractString(obj, "template-id")
+	if templateID == "" {
+		templateID = extractString(obj, "template")
+	}
+	detail := line
+	name := extractString(obj, "info.name")
+	if name == "" {
+		name = strings.ToUpper(toolName)
+	}
+	if strings.EqualFold(toolName, "nuclei") {
+		if severity == "" {
+			severity = "medium"
+		}
+	} else if severity == "" {
+		severity = "info"
+	}
+	if err := models.UpsertFindingFromTool(userID, toolName, severity, name, target, detail, templateID, ifaceName); err != nil {
+		emitLog(fmt.Sprintf("[WARN] finding persistence failed: %v", err))
+	}
+	if strings.EqualFold(toolName, "subfinder") || strings.EqualFold(toolName, "uncover") {
+		if err := models.UpsertDiscoveredTarget(userID, target, toolName); err != nil {
+			emitLog(fmt.Sprintf("[WARN] discovered target upsert failed: %v", err))
+		}
+	}
+}
+
+func extractString(obj map[string]interface{}, key string) string {
+	if strings.Contains(key, ".") {
+		parts := strings.Split(key, ".")
+		var current interface{} = obj
+		for _, part := range parts {
+			m, ok := current.(map[string]interface{})
+			if !ok {
+				return ""
+			}
+			current, ok = m[part]
+			if !ok {
+				return ""
+			}
+		}
+		if s, ok := current.(string); ok {
+			return s
+		}
+		return ""
+	}
+	if v, ok := obj[key].(string); ok {
+		return v
+	}
+	return ""
 }
 
 // extractTarget extracts the target from tool-specific JSON output.
@@ -478,4 +627,64 @@ func verifyRouteBeforeScan(target, ifaceName string) {
 	} else {
 		emitLog(fmt.Sprintf("[INFO] Route verified: %s → %s", target, ifaceName))
 	}
+}
+
+func ensureInterfaceForScan(toolName, target, ifaceName string) error {
+	if ifaceName == "" {
+		return nil
+	}
+	ifaces, err := network.ListInterfaces()
+	if err != nil {
+		return fmt.Errorf("listing interfaces failed: %w", err)
+	}
+	foundUp := false
+	for _, iface := range ifaces {
+		if iface.Name == ifaceName && iface.IsUp {
+			foundUp = true
+			break
+		}
+	}
+	if !foundUp {
+		return fmt.Errorf("selected interface %s is not active", ifaceName)
+	}
+	if ifaceName == "tun0" {
+		_, _, connected, err := network.GetActiveTUNIP()
+		if err != nil {
+			return fmt.Errorf("tun0 verification failed: %w", err)
+		}
+		if !connected {
+			return fmt.Errorf("tun0 selected but no reverse tunnel agent is connected")
+		}
+	}
+	if strings.EqualFold(toolName, "naabu") {
+		return nil
+	}
+	routeProbeTarget := resolveRouteTarget(target)
+	if routeProbeTarget == "" {
+		return nil
+	}
+	if err := network.VerifyRoute(routeProbeTarget, ifaceName); err != nil {
+		return fmt.Errorf("no route to target via %s: %w", ifaceName, err)
+	}
+	return nil
+}
+
+func resolveRouteTarget(target string) string {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return ""
+	}
+	if strings.Contains(target, "/") {
+		if ip, _, err := net.ParseCIDR(target); err == nil {
+			return ip.String()
+		}
+	}
+	if ip := net.ParseIP(target); ip != nil {
+		return ip.String()
+	}
+	ips, err := net.LookupIP(target)
+	if err != nil || len(ips) == 0 {
+		return ""
+	}
+	return ips[0].String()
 }

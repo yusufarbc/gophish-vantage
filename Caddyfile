@@ -1,28 +1,25 @@
 {
     email admin@{$DOMAIN}
-    auto_https off_untrusted_tls
 }
 
 # Gophish Admin Dashboard (with Basic Auth)
 {$DOMAIN} {
     # Basic Auth protection
-    basicauth /* {
+    basic_auth /* {
         admin {$VANTAGE_PASSWORD_HASH}
     }
 
     # Reverse proxy to Gophish admin server
-    reverse_proxy gophish-app:3333 {
-        header_uri /login /admin/login
-    }
+    reverse_proxy vantage-app:3333
 
     # WebSocket support for real-time scanner logs
     handle /ws/scanner/logs {
-        reverse_proxy gophish-app:3333
+        reverse_proxy vantage-app:3333
     }
 
     # API endpoint forwarding
     handle /api/* {
-        reverse_proxy gophish-app:3333
+        reverse_proxy vantage-app:3333
     }
 
     log {
@@ -48,10 +45,7 @@
 # Phishing Landing Pages (Open to public)
 phish.{$DOMAIN},
 landing.{$DOMAIN} {
-    reverse_proxy gophish-app:80 {
-        header_uri /admin /.admin
-        strip_prefix /phish
-    }
+    reverse_proxy vantage-app:80
 
     log {
         output file /var/log/caddy/gophish-phishing.log

@@ -197,6 +197,10 @@ func Setup(c *config.Config) error {
 		log.Error(err)
 		return err
 	}
+	if err := db.AutoMigrate(&Scan{}, &Finding{}, &TargetAsset{}, &UserNetworkConfig{}).Error; err != nil {
+		log.Error(err)
+		return err
+	}
 	// Create the admin user if it doesn't exist
 	var userCount int64
 	var adminUser User

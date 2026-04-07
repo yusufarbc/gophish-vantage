@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -18,11 +18,11 @@
                 extend: {
                     colors: {
                         vantage: {
-                            bg: '#0a0c10',
-                            sidebar: '#11141a',
-                            card: '#161b22',
-                            border: '#30363d',
-                            accent: '#238636',
+                            bg: '#0b0f12',
+                            sidebar: '#11161a',
+                            card: '#151c22',
+                            border: '#2a333c',
+                            accent: '#5ecf88',
                             critical: '#bc8cf2',
                             high: '#f85149',
                             medium: '#d29922',
@@ -30,8 +30,8 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['IBM Plex Sans', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
                     },
                     animation: {
                         pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -68,15 +68,52 @@
             background: #484f58;
         }
 
-        body { background-color: #0a0c10; color: #c9d1d9; }
-        .sidebar-item-active { background-color: #23863622; border-left: 3px solid #238636; }
+        body {
+            background-color: #0b0f12;
+            color: #c9d1d9;
+            background-image: radial-gradient(circle at 8% 8%, rgba(94, 207, 136, 0.08) 0, transparent 34%), linear-gradient(180deg, #0b0f12 0%, #0a0d10 100%);
+        }
+        .sidebar-item-active { background-color: #5ecf8822; border-left: 3px solid #5ecf88; }
         .badge-critical { background-color: #bc8cf220; color: #d498ff; }
         .badge-high { background-color: #f8514920; color: #ff7b72; }
         .badge-medium { background-color: #d2992220; color: #ffd500; }
         .badge-low { background-color: #8b949e50; color: #8b949e; }
-        .terminal-line { font-family: 'JetBrains Mono', monospace; animation: fadeIn 0.2s ease-out; }
-        .gradient-accent { background: linear-gradient(135deg, #238636, #1f6feb); }
-        .glass-card { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(48, 54, 61, 0.5); }
+        .terminal-line { font-family: 'Roboto Mono', monospace; animation: fadeIn 0.2s ease-out; }
+        .gradient-accent { background: linear-gradient(135deg, #5ecf88, #2f9e63); }
+        .glass-card {
+            background: linear-gradient(180deg, rgba(21, 28, 34, 0.97) 0%, rgba(17, 23, 28, 0.97) 100%);
+            border: 1px solid rgba(42, 51, 60, 0.85);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        .panel-title {
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #7f8a95;
+            font-size: 0.73rem;
+            font-weight: 600;
+        }
+        .openvas-divider { border-color: rgba(94, 207, 136, 0.25); }
+        .menu-group-toggle {
+            transition: background-color 0.2s ease;
+        }
+        .menu-group-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+        .menu-group.open .menu-group-content {
+            max-height: 280px;
+        }
+        .menu-group.open .group-chevron {
+            transform: rotate(90deg);
+        }
+        .group-chevron {
+            transition: transform 0.2s ease;
+        }
+        .sidebar-subitem-active {
+            background: rgba(94, 207, 136, 0.14);
+            color: #d7ffe5;
+        }
     </style>
 </head>
 
@@ -90,50 +127,70 @@
                     <svg class="w-8 h-8 text-vantage-accent" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
                     </svg>
-                    <h1 class="text-xl font-bold">VANTAGE</h1>
+                    <h1 class="text-xl font-bold tracking-wide">VANTAGE</h1>
                 </div>
-                <p class="text-xs text-gray-500 uppercase tracking-widest font-medium">Security Ops</p>
+                <p class="text-xs text-vantage-accent uppercase tracking-[0.2em] font-semibold">Vulnerability Center</p>
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 overflow-y-auto py-4 space-y-1">
-                <button onclick="switchTab('dashboard')" class="w-full sidebar-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors" id="nav-dashboard">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    Dashboard
+            <nav class="flex-1 overflow-y-auto py-3 space-y-1 text-[13px]">
+                <button onclick="switchTab('dashboard')" class="w-full sidebar-item flex items-center px-4 py-1 font-medium hover:bg-white/5 transition-colors" id="nav-dashboard">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 13h8V3H3v10zm10 8h8V11h-8v10zM3 21h8v-6H3v6zm10-10h8V3h-8v8z"/></svg>
+                    Dashboards
                 </button>
-                <button onclick="switchTab('scanner')" class="w-full sidebar-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors" id="nav-scanner">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    Scanner
-                </button>
-                <button onclick="switchTab('findings')" class="w-full sidebar-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors" id="nav-findings">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Findings
-                </button>
-                <button onclick="switchTab('campaigns')" class="w-full sidebar-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors" id="nav-campaigns">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    Campaigns
-                </button>
-                <div class="px-6 py-4 mt-6 border-t border-vantage-border">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Tools</p>
-                    <div class="space-y-2 text-xs">
-                        <span class="block px-3 py-1.5 rounded bg-vantage-card text-gray-400">Subfinder</span>
-                        <span class="block px-3 py-1.5 rounded bg-vantage-card text-gray-400">Httpx</span>
-                        <span class="block px-3 py-1.5 rounded bg-vantage-card text-gray-400">Nuclei</span>
-                        <span class="block px-3 py-1.5 rounded bg-vantage-card text-gray-400">Naabu</span>
+
+                <div class="menu-group open" id="group-scans">
+                    <button onclick="toggleMenuGroup('group-scans')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
+                        <span class="flex items-center font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l9 4.5v5c0 5-3.5 8-9 8s-9-3-9-8v-5L12 3z"/></svg>
+                            Scans
+                        </span>
+                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                    <div class="menu-group-content pl-8 pr-3 space-y-1">
+                        <button onclick="switchTab('tasks')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-tasks">Tasks</button>
+                        <button onclick="switchTab('reports')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-reports">Reports</button>
+                        <button onclick="switchTab('results')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-results">Results</button>
+                        <button onclick="switchTab('vulnerabilities')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-vulnerabilities">Vulnerabilities</button>
+                    </div>
+                </div>
+
+                <div class="menu-group open" id="group-assets">
+                    <button onclick="toggleMenuGroup('group-assets')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
+                        <span class="flex items-center font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16v12H4zM9 18v-2m6 2v-2"/></svg>
+                            Assets
+                        </span>
+                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                    <div class="menu-group-content pl-8 pr-3 space-y-1">
+                        <button onclick="switchTab('hosts')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-hosts">Hosts</button>
+                        <button onclick="switchTab('operating-systems')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-operating-systems">Operating Systems</button>
+                    </div>
+                </div>
+
+                <div class="menu-group open" id="group-resilience">
+                    <button onclick="toggleMenuGroup('group-resilience')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
+                        <span class="flex items-center font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/></svg>
+                            Resilience
+                        </span>
+                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                    <div class="menu-group-content pl-8 pr-3 space-y-1">
+                        <button onclick="switchTab('campaigns')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-campaigns">Campaigns</button>
+                        <button onclick="switchTab('stress-tests')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-stress-tests">Stress Tests</button>
+                        <button onclick="switchTab('resilience-admin')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-resilience-admin">Administration</button>
                     </div>
                 </div>
 
                 <!-- Vantage Agent Status Badge -->
-                <div class="px-6 py-4 border-t border-vantage-border">
-                    <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Vantage Agent</p>
-                    <div id="agent-badge" class="flex items-center gap-2 px-3 py-2 rounded bg-vantage-card border border-vantage-border">
+                <div class="px-4 pt-3 mt-3 border-t border-vantage-border">
+                    <div id="agent-badge" class="flex items-center gap-2 px-2 py-1 rounded bg-vantage-card border border-vantage-border">
                         <span id="agent-dot" class="w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500"></span>
-                        <div class="flex-1 min-w-0">
-                            <p id="agent-label" class="text-xs text-gray-500">Disconnected</p>
-                            <p id="agent-ip" class="text-xs font-mono text-gray-600 truncate"></p>
-                        </div>
+                        <p id="agent-label" class="text-[12px] text-gray-500">Agent: Disconnected</p>
                     </div>
-                    <p class="text-xs text-gray-600 mt-2">Reverse tunnel (port 9090)</p>
+                    <p id="agent-ip" class="text-[11px] font-mono text-gray-600 mt-1 truncate"></p>
                 </div>
             </nav>
 
@@ -149,10 +206,10 @@
             <!-- Top Header Bar -->
             <header class="h-16 bg-black/20 border-b border-vantage-border px-8 flex items-center justify-between z-20">
                 <div class="flex items-center gap-4">
-                    <h2 class="text-lg font-semibold" id="tab-title">Dashboard</h2>
+                    <h2 class="text-lg font-semibold tracking-wide" id="tab-title">Dashboard</h2>
                 </div>
                 <div class="flex items-center gap-4">
-                    <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-900/50">API Connected</span>
+                    <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/40">Sensor Online</span>
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-vantage-accent to-blue-600 flex items-center justify-center text-sm font-bold">A</div>
                 </div>
             </header>
@@ -162,88 +219,141 @@
                 <!-- Dashboard Tab -->
                 <div id="tab-dashboard" class="tab-content p-8 space-y-6">
                     <div class="grid grid-cols-4 gap-4">
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Total Findings</p>
+                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                            <p class="panel-title mb-2">Total Vulnerabilities</p>
                             <p class="text-3xl font-bold text-vantage-accent" id="stat-total">0</p>
-                            <p class="text-xs text-gray-500 mt-2">+12 this week</p>
+                            <p class="text-xs text-gray-500 mt-2">Scope: Internal + External</p>
                         </div>
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Critical</p>
-                            <p class="text-3xl font-bold " id="stat-critical" style="color: #d498ff;">0</p>
+                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                            <p class="panel-title mb-2">Critical Risk</p>
+                            <p class="text-3xl font-bold" id="stat-critical" style="color: #d498ff;">0</p>
+                            <p class="text-xs text-gray-500 mt-2">CVSS 9.0 - 10.0</p>
                         </div>
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Active Scans</p>
+                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                            <p class="panel-title mb-2">Running Tasks</p>
                             <p class="text-3xl font-bold text-blue-400" id="stat-scans">0</p>
+                            <p class="text-xs text-gray-500 mt-2">Discovery / Validation</p>
                         </div>
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Campaigns</p>
+                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                            <p class="panel-title mb-2">Campaign Objects</p>
                             <p class="text-3xl font-bold text-yellow-400" id="stat-campaigns">0</p>
+                            <p class="text-xs text-gray-500 mt-2">Linked awareness ops</p>
                         </div>
                     </div>
 
-                    <!-- Charts -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <h3 class="font-semibold mb-4">Severity Distribution</h3>
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="glass-card p-6 rounded-lg border border-vantage-border col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-semibold">Severity Distribution</h3>
+                                <span class="text-xs text-vantage-accent font-mono">last sync 30s</span>
+                            </div>
                             <canvas id="severityChart"></canvas>
                         </div>
                         <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <h3 class="font-semibold mb-4">Tool Performance</h3>
-                            <canvas id="toolsChart"></canvas>
+                            <h3 class="font-semibold mb-4">Assessment Pipeline</h3>
+                            <div class="space-y-4 text-sm">
+                                <div>
+                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Asset Discovery</span><span class="text-vantage-accent font-mono">82%</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-vantage-accent h-2 rounded-full" style="width: 82%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Port & Service</span><span class="text-blue-400 font-mono">64%</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-blue-400 h-2 rounded-full" style="width: 64%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Vulnerability Match</span><span class="text-yellow-400 font-mono">47%</span></div>
+                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-yellow-400 h-2 rounded-full" style="width: 47%"></div></div>
+                                </div>
+                                <div class="pt-2 border-t openvas-divider">
+                                    <p class="text-xs text-gray-500">Queue Status</p>
+                                    <p class="text-sm mt-1 font-mono text-gray-300">
+                                        sent: <span id="mail-sent">0</span> /
+                                        deferred: <span id="mail-deferred">0</span> /
+                                        queued: <span id="mail-queued">0</span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Scanner Tab -->
-                <div id="tab-scanner" class="tab-content hidden p-8 space-y-6">
-                    <div class="max-w-3xl">
-                        <!-- Scan Form -->
-                        <div class="glass-card p-8 rounded-lg border border-vantage-border space-y-6">
-                            <h3 class="text-xl font-bold">Execute Scan</h3>
-                            
+                <!-- Tasks Tab -->
+                <div id="tab-tasks" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold">Tasks</h3>
+                            <button onclick="openTaskModal()" class="bg-vantage-accent hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg text-sm">+ New Task</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="text-gray-400 border-b border-vantage-border">
+                                    <tr>
+                                        <th class="px-3 py-2">Task</th>
+                                        <th class="px-3 py-2">Target</th>
+                                        <th class="px-3 py-2">Interface</th>
+                                        <th class="px-3 py-2">Status</th>
+                                        <th class="px-3 py-2">Progress</th>
+                                        <th class="px-3 py-2">Tools</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tasks-tbody" class="divide-y divide-gray-800">
+                                    <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- New Task Modal -->
+                    <div id="task-modal" class="fixed inset-0 bg-black/70 hidden z-50 items-center justify-center p-4">
+                        <div class="glass-card w-full max-w-3xl rounded-lg border border-vantage-border p-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-bold">New Task Wizard</h4>
+                                <button onclick="closeTaskModal()" class="text-gray-400 hover:text-white text-xl leading-none">&times;</button>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Target</label>
-                                    <input type="text" id="scan-target" placeholder="example.com or 192.168.1.0/24" class="w-full bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent">
+                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Task Name</label>
+                                    <input id="task-name" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm" placeholder="External perimeter baseline">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Tool</label>
-                                    <select id="scan-tool" class="w-full bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent">
-                                        <option value="nuclei">Nuclei (Templates)</option>
-                                        <option value="subfinder">Subfinder (Subdomains)</option>
-                                        <option value="httpx">Httpx (HTTP Probe)</option>
-                                        <option value="naabu">Naabu (Ports)</option>
-                                        <option value="dnsx">DNSx (DNS)</option>
-                                        <option value="katana">Katana (Web Crawl)</option>
-                                        <option value="tlsx">TLSx (TLS Scan)</option>
-                                        <option value="asn-map">ASNMap (ASN)</option>
-                                    </select>
+                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Target</label>
+                                    <input id="task-target" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm" placeholder="10.10.0.0/16 or example.com">
                                 </div>
                             </div>
-
-                            <!-- Outbound Interface Selector -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Outbound Interface</label>
-                                <select id="scan-interface" class="w-full bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent">
-                                    <option value="">Default (Auto — OS routing table)</option>
-                                </select>
-                                <p class="text-xs text-gray-600 mt-1">Select <span class="font-mono text-green-500">tun0</span> to route through the reverse tunnel agent.</p>
+                                <label class="block text-xs text-gray-500 mb-2 uppercase">Scanner Config</label>
+                                <div class="grid grid-cols-4 gap-2 text-sm" id="task-tools-grid">
+                                    <label><input type="checkbox" value="subfinder" class="task-tool mr-1">Subfinder</label>
+                                    <label><input type="checkbox" value="httpx" class="task-tool mr-1">Httpx</label>
+                                    <label><input type="checkbox" value="nuclei" class="task-tool mr-1">Nuclei</label>
+                                    <label><input type="checkbox" value="naabu" class="task-tool mr-1">Naabu</label>
+                                    <label><input type="checkbox" value="dnsx" class="task-tool mr-1">DNSx</label>
+                                    <label><input type="checkbox" value="katana" class="task-tool mr-1">Katana</label>
+                                    <label><input type="checkbox" value="tlsx" class="task-tool mr-1">TLSx</label>
+                                    <label><input type="checkbox" value="asnmap" class="task-tool mr-1">ASNMap</label>
+                                    <label><input type="checkbox" value="uncover" class="task-tool mr-1">Uncover</label>
+                                    <label><input type="checkbox" value="assetfinder" class="task-tool mr-1">Assetfinder</label>
+                                    <label><input type="checkbox" value="interactsh-client" class="task-tool mr-1">Interactsh</label>
+                                    <label><input type="checkbox" value="cloudlist" class="task-tool mr-1">Cloudlist</label>
+                                </div>
                             </div>
-
-                            <div>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" id="scan-discovery" class="w-4 h-4">
-                                    <span class="text-sm font-medium">Discovery Mode (subfinder → httpx → nuclei)</span>
-                                </label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Network Interface</label>
+                                    <select id="task-interface" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm">
+                                        <option value="">Default (eth0)</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <label class="text-sm"><input id="task-parallel" type="checkbox" class="mr-1">Run tools in parallel</label>
+                                </div>
                             </div>
-
-                            <button onclick="startScan()" class="w-full bg-vantage-accent hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-all active:scale-95">
-                                <span class="flex items-center justify-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                    START SCAN
-                                </span>
-                            </button>
+                            <div class="flex justify-end gap-2">
+                                <button onclick="closeTaskModal()" class="px-4 py-2 text-sm rounded bg-gray-700 hover:bg-gray-600">Cancel</button>
+                                <button onclick="createTask()" class="px-4 py-2 text-sm rounded bg-vantage-accent hover:bg-green-700 text-white font-bold">Start Task</button>
+                            </div>
                         </div>
+                    </div>
 
                         <!-- Reverse Tunnel Control Panel -->
                         <div class="glass-card rounded-lg border border-vantage-border overflow-hidden">
@@ -309,8 +419,8 @@
                     </div>
                 </div>
 
-                <!-- Findings Tab -->
-                <div id="tab-findings" class="tab-content hidden p-8 space-y-4">
+                <!-- Results Tab -->
+                <div id="tab-results" class="tab-content hidden p-8 space-y-4">
                     <div class="glass-card rounded-lg border border-vantage-border overflow-hidden">
                         <div class="bg-black/30 px-6 py-4 border-b border-vantage-border flex gap-2">
                             <button onclick="filterFindings('')" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-medium">All</button>
@@ -325,6 +435,7 @@
                                     <tr>
                                         <th class="px-6 py-3">Severity</th>
                                         <th class="px-6 py-3">Tool</th>
+                                        <th class="px-6 py-3">Interface</th>
                                         <th class="px-6 py-3">Finding</th>
                                         <th class="px-6 py-3">Target</th>
                                         <th class="px-6 py-3">Details</th>
@@ -333,11 +444,109 @@
                                 </thead>
                                 <tbody id="findings-tbody" class="divide-y divide-gray-800">
                                     <tr class="hover:bg-gray-900/30">
-                                        <td class="px-6 py-3" colspan="6" class="text-center text-gray-500 py-8">No findings yet. Start a scan to populate.</td>
+                                        <td class="px-6 py-3" colspan="7" class="text-center text-gray-500 py-8">No findings yet. Start a scan to populate.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Vulnerabilities Tab -->
+                <div id="tab-vulnerabilities" class="tab-content hidden p-8 space-y-4">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <h3 class="text-lg font-bold mb-2">Vulnerabilities (Global)</h3>
+                        <p class="text-sm text-gray-400">Global issue database mirrors discovered CVE/template results.</p>
+                        <div class="mt-4 text-sm text-gray-300" id="vuln-global-summary">Loading vulnerability corpus...</div>
+                    </div>
+                </div>
+
+                <!-- Hosts Tab -->
+                <div id="tab-hosts" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-6 rounded-lg border border-vantage-border space-y-4">
+                        <h3 class="text-lg font-bold">Target Asset Management</h3>
+                        <p class="text-sm text-gray-400">IP, CIDR, domain list, or organization names. One per line or comma-separated.</p>
+                        <textarea id="targets-input" rows="4" class="w-full bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent" placeholder="192.168.1.0/24&#10;example.com&#10;acme corp"></textarea>
+                        <div class="flex gap-3">
+                            <select id="targets-scope" class="bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm">
+                                <option value="">All</option>
+                                <option value="internal">Internal</option>
+                                <option value="external">External</option>
+                            </select>
+                            <input id="targets-search" type="text" placeholder="Search target..." class="flex-1 bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent">
+                            <button onclick="importTargets()" class="bg-vantage-accent hover:bg-green-700 text-white font-bold px-4 py-2 rounded">Import</button>
+                            <button onclick="loadTargets()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-lg border border-vantage-border overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-900/50 text-gray-400 font-semibold border-b border-vantage-border">
+                                <tr>
+                                    <th class="px-6 py-3">Target</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Scope</th>
+                                    <th class="px-6 py-3">Tag</th>
+                                    <th class="px-6 py-3">Last Scanned</th>
+                                    <th class="px-6 py-3">Live/Down</th>
+                                    <th class="px-6 py-3">OS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="targets-tbody" class="divide-y divide-gray-800">
+                                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No managed targets yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Operating Systems Tab -->
+                <div id="tab-operating-systems" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <h3 class="text-lg font-bold mb-2">Operating Systems</h3>
+                        <p class="text-sm text-gray-400">OS fingerprinting results grouped by discovered hosts.</p>
+                        <div id="os-table" class="mt-4 text-sm text-gray-500">No OS fingerprint data yet.</div>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="tab-reports" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <h3 class="text-lg font-bold mb-2">Reports</h3>
+                        <p class="text-sm text-gray-400">PDF/HTML export queue will appear here.</p>
+                    </div>
+                </div>
+
+                <!-- Stress Tests Tab -->
+                <div id="tab-stress-tests" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border space-y-4">
+                        <h3 class="text-lg font-bold">Infrastructure Resilience / Stress Tests</h3>
+                        <div class="grid grid-cols-5 gap-3 text-sm">
+                            <input id="stress-target" class="col-span-2 bg-vantage-bg border border-vantage-border rounded px-3 py-2" placeholder="https://target.local/health">
+                            <select id="stress-tool" class="bg-vantage-bg border border-vantage-border rounded px-3 py-2">
+                                <option value="vegeta">Vegeta</option>
+                                <option value="bombardier">Bombardier</option>
+                                <option value="hey">Hey</option>
+                            </select>
+                            <input id="stress-rate" class="bg-vantage-bg border border-vantage-border rounded px-3 py-2" type="number" value="500" min="1" placeholder="RPS">
+                            <input id="stress-duration" class="bg-vantage-bg border border-vantage-border rounded px-3 py-2" value="60s" placeholder="Duration">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 text-sm">
+                            <select id="stress-interface" class="bg-vantage-bg border border-vantage-border rounded px-3 py-2">
+                                <option value="">Default (eth0)</option>
+                            </select>
+                            <button onclick="startStressTest()" class="bg-vantage-accent hover:bg-green-700 text-white font-bold px-4 py-2 rounded">Start Stress Test</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <h4 class="font-semibold mb-3">Response Latency (real-time)</h4>
+                        <canvas id="stressLatencyChart" height="100"></canvas>
+                    </div>
+                </div>
+
+                <!-- Resilience Admin Tab -->
+                <div id="tab-resilience-admin" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
+                        <h3 class="text-lg font-bold mb-2">Administration</h3>
+                        <p class="text-sm text-gray-400">User management and Vantage Agent configuration panel.</p>
                     </div>
                 </div>
 
@@ -363,41 +572,68 @@
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('sidebar-item-active'));
-            document.getElementById('nav-' + tabName).classList.add('sidebar-item-active');
+            document.querySelectorAll('.sidebar-subitem').forEach(el => el.classList.remove('sidebar-subitem-active'));
+            const nav = document.getElementById('nav-' + tabName);
+            if (nav) {
+                if (nav.classList.contains('sidebar-subitem')) nav.classList.add('sidebar-subitem-active');
+                else nav.classList.add('sidebar-item-active');
+            }
 
             const titles = {
                 dashboard: 'Dashboard',
-                scanner: 'Scanner',
-                findings: 'Findings',
-                campaigns: 'Campaigns'
+                tasks: 'Tasks',
+                reports: 'Reports',
+                results: 'Results',
+                vulnerabilities: 'Vulnerabilities',
+                hosts: 'Hosts',
+                'operating-systems': 'Operating Systems',
+                campaigns: 'Campaigns',
+                'stress-tests': 'Stress Tests',
+                'resilience-admin': 'Administration'
             };
             document.getElementById('tab-title').textContent = titles[tabName] || 'Dashboard';
 
             if (tabName === 'dashboard') initDashboard();
-            if (tabName === 'scanner') initScanner();
-            if (tabName === 'findings') loadFindings();
+            if (tabName === 'tasks') initTasks();
+            if (tabName === 'results') loadFindings();
+            if (tabName === 'hosts') loadTargets();
+            if (tabName === 'vulnerabilities') loadVulnerabilitySummary();
             if (tabName === 'campaigns') loadCampaigns();
+            if (tabName === 'stress-tests') initStressTests();
         }
 
-        // ── Scanner ──────────────────────────────────────────────────────────────
+        function toggleMenuGroup(groupId) {
+            const group = document.getElementById(groupId);
+            if (!group) return;
+            group.classList.toggle('open');
+        }
+
+        // ── Task-Centric Workflow ───────────────────────────────────────────────
 
         let ws = null;
         let agentPollInterval = null;
+        let stressLatencyChart = null;
+        let stressLabels = [];
+        let stressValues = [];
 
-        function initScanner() {
+        function initTasks() {
             if (!ws) {
                 ws = new WebSocket(`ws://${window.location.host}/ws/scanner/logs`);
                 ws.onmessage = (evt) => {
                     const logsDiv = document.getElementById('scanner-logs');
-                    const line = document.createElement('p');
-                    line.className = 'terminal-line text-gray-300 text-xs font-mono';
-                    line.textContent = evt.data;
-                    logsDiv.appendChild(line);
-                    logsDiv.scrollTop = logsDiv.scrollHeight;
+                    if (logsDiv) {
+                        const line = document.createElement('p');
+                        line.className = 'terminal-line text-gray-300 text-xs font-mono';
+                        line.textContent = evt.data;
+                        logsDiv.appendChild(line);
+                        logsDiv.scrollTop = logsDiv.scrollHeight;
+                    }
+                    consumeStressMetric(evt.data);
                 };
                 ws.onerror = () => console.error('WebSocket error');
             }
             loadInterfaceDropdowns();
+            loadTasks();
         }
 
         // ── Interface Dropdowns ───────────────────────────────────────────────────
@@ -409,12 +645,14 @@
                 const data = await resp.json();
                 const ifaces = data.interfaces || [];
 
-                const scanSelect = document.getElementById('scan-interface');
+                const scanSelect = document.getElementById('task-interface');
                 const routeSelect = document.getElementById('route-iface');
+                const stressSelect = document.getElementById('stress-interface');
 
                 // Preserve default option
-                scanSelect.innerHTML = '<option value="">Default (Auto — OS routing table)</option>';
-                routeSelect.innerHTML = '<option value="">via interface…</option>';
+                if (scanSelect) scanSelect.innerHTML = '<option value="">Default (eth0)</option>';
+                if (routeSelect) routeSelect.innerHTML = '<option value="">via interface…</option>';
+                if (stressSelect) stressSelect.innerHTML = '<option value="">Default (eth0)</option>';
 
                 ifaces.forEach(iface => {
                     const label = iface.is_tun
@@ -423,9 +661,9 @@
 
                     const opt1 = new Option(label, iface.name);
                     if (iface.is_tun) opt1.style.color = '#4ade80';
-                    scanSelect.appendChild(opt1);
-
-                    routeSelect.appendChild(new Option(iface.name, iface.name));
+                    if (scanSelect) scanSelect.appendChild(opt1.cloneNode(true));
+                    if (stressSelect) stressSelect.appendChild(new Option(label, iface.name));
+                    if (routeSelect) routeSelect.appendChild(new Option(iface.name, iface.name));
                 });
             } catch (e) {
                 console.warn('Could not load interfaces:', e);
@@ -520,20 +758,41 @@
             }
         }
 
-        async function startScan() {
-            const target = document.getElementById('scan-target').value;
-            const tool = document.getElementById('scan-tool').value;
-            const discovery = document.getElementById('scan-discovery').checked;
-            const iface = document.getElementById('scan-interface').value;
+        function openTaskModal() {
+            document.getElementById('task-modal').classList.remove('hidden');
+            document.getElementById('task-modal').classList.add('flex');
+            loadInterfaceDropdowns();
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+            document.getElementById('task-modal').classList.remove('flex');
+        }
+
+        async function createTask() {
+            const taskName = document.getElementById('task-name').value.trim();
+            const target = document.getElementById('task-target').value.trim();
+            const iface = document.getElementById('task-interface').value;
+            const parallel = document.getElementById('task-parallel').checked;
+            const tools = Array.from(document.querySelectorAll('.task-tool:checked')).map(x => x.value);
 
             if (!target) {
                 alert('Please enter a target');
                 return;
             }
+            if (tools.length === 0) {
+                alert('Please select at least one scanner tool.');
+                return;
+            }
 
             try {
-                const body = { target, tool, discovery_mode: discovery };
-                if (iface) body.interface = iface;
+                const body = {
+                    task_name: taskName,
+                    target,
+                    enabled_tools: tools,
+                    interface: iface,
+                    parallel
+                };
 
                 const resp = await secureFetch('/api/scanner/start', {
                     method: 'POST',
@@ -541,13 +800,48 @@
                     body: JSON.stringify(body)
                 });
                 if (resp.ok) {
-                    document.getElementById('scanner-status').style.display = 'block';
-                    initScanner();
+                    closeTaskModal();
+                    loadTasks();
+                    const status = document.getElementById('scanner-status');
+                    if (status) status.style.display = 'block';
                 } else {
                     alert('Scan failed: ' + await resp.text());
                 }
             } catch (e) {
                 alert('Error: ' + e.message);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const resp = await fetch('/api/scanner/tasks?limit=50');
+                if (!resp.ok) return;
+                const tasks = await resp.json();
+                const tbody = document.getElementById('tasks-tbody');
+                if (!tbody) return;
+                tbody.innerHTML = (tasks || []).map(t => {
+                    const done = (t.status || '').toLowerCase() === 'done';
+                    const running = (t.status || '').toLowerCase() === 'running';
+                    const badge = done
+                        ? '<span class="px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300">Done</span>'
+                        : `<span class="px-2 py-1 text-xs rounded ${running ? 'bg-green-900/50 text-green-300' : 'bg-gray-700 text-gray-300'}">${t.status || 'queued'}</span>`;
+                    const progress = Number(t.progress || 0);
+                    return `
+                        <tr class="hover:bg-gray-900/30">
+                            <td class="px-3 py-2">${t.name || '-'}</td>
+                            <td class="px-3 py-2 font-mono">${t.target || '-'}</td>
+                            <td class="px-3 py-2">${t.outbound_interface || 'eth0'}</td>
+                            <td class="px-3 py-2">${badge}</td>
+                            <td class="px-3 py-2 w-48">
+                                <div class="w-full bg-gray-800 rounded h-2"><div class="h-2 rounded ${running ? 'bg-green-400' : 'bg-gray-500'}" style="width:${progress}%"></div></div>
+                                <div class="text-[11px] text-gray-400 mt-1">${progress}% Running</div>
+                            </td>
+                            <td class="px-3 py-2 text-xs">${(t.enabled_tools || []).join(', ')}</td>
+                        </tr>
+                    `;
+                }).join('') || '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>';
+            } catch (e) {
+                console.error('Load tasks error:', e);
             }
         }
 
@@ -564,12 +858,13 @@
                             <span class="px-2 py-1 rounded-full text-xs font-semibold badge-${f.severity}">${f.severity}</span>
                         </td>
                         <td class="px-6 py-3 text-sm">${f.tool_name}</td>
+                        <td class="px-6 py-3 text-sm"><span class="px-2 py-1 rounded text-xs ${f.outbound_interface === 'tun0' ? 'bg-blue-900/40 text-blue-300' : 'bg-gray-700 text-gray-200'}">${f.outbound_interface || 'eth0'}</span></td>
                         <td class="px-6 py-3 text-sm font-medium">${f.name}</td>
                         <td class="px-6 py-3 text-sm font-mono text-blue-400">${f.target}</td>
                         <td class="px-6 py-3 text-sm text-gray-400 max-w-xs truncate">${f.detail || '-'}</td>
                         <td class="px-6 py-3 text-sm text-gray-500">${new Date(f.created_at).toLocaleDateString()}</td>
                     </tr>
-                `).join('') || '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No findings</td></tr>';
+                `).join('') || '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No findings</td></tr>';
             } catch (e) {
                 console.error('Load findings error:', e);
             }
@@ -579,6 +874,146 @@
             // TODO: Filter findings by severity
         }
 
+        // ── Targets ───────────────────────────────────────────────────────────────
+
+        async function importTargets() {
+            const input = document.getElementById('targets-input').value.trim();
+            if (!input) {
+                alert('Please enter at least one target value.');
+                return;
+            }
+            try {
+                const resp = await secureFetch('/api/v1/targets/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input, source: 'manual' })
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    alert(data.message || 'Target import failed');
+                    return;
+                }
+                document.getElementById('targets-input').value = '';
+                loadTargets();
+            } catch (e) {
+                alert('Import error: ' + e.message);
+            }
+        }
+
+        async function loadTargets() {
+            const scope = document.getElementById('targets-scope')?.value || '';
+            const search = document.getElementById('targets-search')?.value || '';
+            const qs = new URLSearchParams();
+            if (scope) qs.set('scope', scope);
+            if (search) qs.set('search', search);
+
+            try {
+                const resp = await fetch('/api/v1/targets?' + qs.toString());
+                if (!resp.ok) return;
+                const payload = await resp.json();
+                const targets = payload.targets || [];
+                const tbody = document.getElementById('targets-tbody');
+                if (!tbody) return;
+                tbody.innerHTML = targets.map(t => `
+                    <tr class="hover:bg-gray-900/30">
+                        <td class="px-6 py-3 font-mono text-blue-300">${t.value}</td>
+                        <td class="px-6 py-3">${t.input_type}</td>
+                        <td class="px-6 py-3">${t.is_internal ? '<span class="text-green-400">Internal</span>' : '<span class="text-orange-300">External</span>'}</td>
+                        <td class="px-6 py-3">${t.tag || '-'}</td>
+                        <td class="px-6 py-3">${t.last_scanned ? new Date(t.last_scanned).toLocaleString() : '-'}</td>
+                        <td class="px-6 py-3">${t.availability || 'unknown'}</td>
+                        <td class="px-6 py-3">${t.operating_system || '-'}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No targets found.</td></tr>';
+            } catch (e) {
+                console.error('Load targets error:', e);
+            }
+        }
+
+        async function loadVulnerabilitySummary() {
+            try {
+                const resp = await fetch('/api/scanner/stats');
+                if (!resp.ok) return;
+                const stats = await resp.json();
+                const el = document.getElementById('vuln-global-summary');
+                if (!el) return;
+                el.innerHTML = `Total: <b>${stats.total || 0}</b> | Critical: <b>${stats.critical || 0}</b> | High: <b>${stats.high || 0}</b> | Medium: <b>${stats.medium || 0}</b> | Low: <b>${stats.low || 0}</b>`;
+            } catch (e) {
+                console.error('Vulnerability summary error:', e);
+            }
+        }
+
+        function initStressTests() {
+            if (!stressLatencyChart) {
+                const ctx = document.getElementById('stressLatencyChart')?.getContext('2d');
+                if (ctx) {
+                    stressLatencyChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: stressLabels,
+                            datasets: [{
+                                label: 'Latency (ms)',
+                                data: stressValues,
+                                borderColor: '#58a6ff',
+                                backgroundColor: 'rgba(88,166,255,0.2)',
+                                tension: 0.25
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: '#c9d1d9' } } },
+                            scales: {
+                                x: { ticks: { color: '#8b949e' } },
+                                y: { ticks: { color: '#8b949e' } }
+                            }
+                        }
+                    });
+                }
+            }
+            loadInterfaceDropdowns();
+        }
+
+        async function startStressTest() {
+            const target_url = document.getElementById('stress-target').value.trim();
+            const tool = document.getElementById('stress-tool').value;
+            const rate = parseInt(document.getElementById('stress-rate').value || '0', 10);
+            const duration = document.getElementById('stress-duration').value.trim();
+            const iface = document.getElementById('stress-interface').value;
+            if (!target_url) {
+                alert('Stress test target URL is required.');
+                return;
+            }
+            const resp = await secureFetch('/api/scanner/stress/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tool, target_url, rate, duration, interface: iface })
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                alert(data.message || 'Stress test failed to start');
+                return;
+            }
+            alert('Stress test started');
+            initTasks();
+        }
+
+        function consumeStressMetric(line) {
+            const marker = '[STRESS_METRIC]';
+            if (!line.includes(marker)) return;
+            const start = line.indexOf('{');
+            if (start === -1) return;
+            try {
+                const point = JSON.parse(line.slice(start));
+                stressLabels.push(String(point.t));
+                stressValues.push(Number(point.latency_ms || 0));
+                if (stressLabels.length > 50) {
+                    stressLabels.shift();
+                    stressValues.shift();
+                }
+                if (stressLatencyChart) stressLatencyChart.update();
+            } catch (e) {}
+        }
+
         // ── Dashboard ─────────────────────────────────────────────────────────────
 
         async function initDashboard() {
@@ -586,6 +1021,11 @@
                 const stats = await fetch('/api/scanner/stats').then(r => r.json());
                 document.getElementById('stat-total').textContent = stats.total || 'N/A';
                 document.getElementById('stat-critical').textContent = stats.critical || '0';
+
+                const mail = await fetch('/api/v1/mail/queue').then(r => r.json());
+                document.getElementById('mail-sent').textContent = mail.sent || 0;
+                document.getElementById('mail-deferred').textContent = mail.deferred || 0;
+                document.getElementById('mail-queued').textContent = mail.queued || 0;
 
                 // Initialize charts
                 initCharts();
@@ -660,6 +1100,7 @@
             // Start polling the agent/tunnel status every 5 seconds
             pollAgentStatus();
             agentPollInterval = setInterval(pollAgentStatus, 5000);
+            setInterval(loadTasks, 7000);
         });
     </script>
 </body>

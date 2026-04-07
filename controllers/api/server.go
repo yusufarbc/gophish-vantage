@@ -94,6 +94,8 @@ func (as *Server) registerRoutes() {
 	router.HandleFunc("/scanner/findings/{id:[0-9]+}", as.DeleteFinding).Methods("DELETE")
 	router.HandleFunc("/scanner/findings", as.ClearFindings).Methods("DELETE")
 	router.HandleFunc("/scanner/stats", as.GetStats).Methods("GET")
+	router.HandleFunc("/scanner/tasks", as.ListTasks).Methods("GET")
+	router.HandleFunc("/scanner/stress/start", as.StartStressTest).Methods("POST")
 
 	// ── Vantage v1 API — Network & Tunnel Management ──────────────────────────
 	// Versioned subrouter: /api/v1/
@@ -105,6 +107,9 @@ func (as *Server) registerRoutes() {
 	v1.HandleFunc("/tunnel/start", as.StartTunnelServer).Methods("POST")
 	v1.HandleFunc("/tunnel/stop", as.StopTunnelServer).Methods("POST")
 	v1.HandleFunc("/tunnel/route", as.AddRoute).Methods("POST")
+	v1.HandleFunc("/targets", as.ListTargets).Methods("GET")
+	v1.HandleFunc("/targets/import", as.ImportTargets).Methods("POST")
+	v1.HandleFunc("/mail/queue", as.MailQueueSummary).Methods("GET")
 
 	as.handler = root
 }

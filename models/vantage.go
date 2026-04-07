@@ -7,13 +7,18 @@ import "time"
 // Scan represents a vulnerability scanning session.
 // It tracks execution history and metadata for performed scans.
 type Scan struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Target    string    `gorm:"not null;index" json:"target"`
-	ToolName  string    `gorm:"index" json:"tool_name"`
-	Mode      string    `json:"mode"` // "single" | "discovery" | "bulk"
-	Status    string    `gorm:"default:'running'" json:"status"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	ID               uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID           int64     `gorm:"not null;index" json:"user_id"`
+	Name             string    `gorm:"size:255;index" json:"name"`
+	Target           string    `gorm:"not null;index" json:"target"`
+	ToolName         string    `gorm:"index" json:"tool_name"`
+	EnabledTools     ToolList  `gorm:"type:text" json:"enabled_tools"`
+	OutboundInterface string   `gorm:"size:64;index" json:"outbound_interface"`
+	Mode             string    `json:"mode"` // "single" | "discovery" | "task"
+	Status           string    `gorm:"default:'queued';index" json:"status"`
+	Progress         int       `gorm:"default:0" json:"progress"`
+	CreatedAt        time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt        time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
 	// Relationships
 	Findings []Finding `gorm:"foreignKey:ScanID" json:"findings,omitempty"`
@@ -34,6 +39,7 @@ type Scan struct {
 // - asn-map: ASN/CIDR research
 type Finding struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID    int64     `gorm:"not null;index" json:"user_id"`
 	ScanID    uint      `gorm:"index" json:"scan_id,omitempty"` // FK → Scan.ID
 	ToolName  string    `gorm:"not null;index" json:"tool_name"`
 	Severity  string    `gorm:"not null;index;default:'info'" json:"severity"`
@@ -41,6 +47,7 @@ type Finding struct {
 	Target    string    `gorm:"not null;index" json:"target"`
 	Detail    string    `json:"detail"`         // Extra context: IP, port, URL path, etc
 	TemplateID string   `json:"template_id"`    // For nuclei: template that triggered
+	OutboundInterface string `gorm:"index;size:64" json:"outbound_interface"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 
 	// Relationships

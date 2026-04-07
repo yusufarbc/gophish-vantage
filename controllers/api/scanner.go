@@ -3,16 +3,22 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
+	ctx "github.com/gophish/gophish/context"
 	"github.com/gophish/gophish/models"
 	"github.com/gophish/gophish/scanner"
+	"github.com/gorilla/mux"
 )
 
 // ScanRequest is the JSON body for POST /api/scanner/scan
 type ScanRequest struct {
+	TaskName      string   `json:"task_name,omitempty"`
 	Target        string   `json:"target"`
 	Tool          string   `json:"tool"`
+	EnabledTools  []string `json:"enabled_tools,omitempty"`
+	Parallel      bool     `json:"parallel,omitempty"`
 	Flags         []string `json:"flags,omitempty"`
 	DiscoveryMode bool     `json:"discovery_mode,omitempty"`
 	Interface     string   `json:"interface,omitempty"` // optional: bind scan to this network interface (e.g. "tun0")
@@ -41,36 +47,57 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 	var req ScanRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		JSONError(w, "Invalid JSON body", http.StatusBadRequest)
+		JSONResponse(w, models.Response{Success: false, Message: "Invalid JSON body"}, http.StatusBadRequest)
 		return
 	}
 
 	// Validation
 	req.Target = strings.TrimSpace(req.Target)
 	if req.Target == "" {
-		JSONError(w, "target is required", http.StatusBadRequest)
+		JSONResponse(w, models.Response{Success: false, Message: "target is required"}, http.StatusBadRequest)
+		return
+	}
+
+	uid := ctx.Get(r, "user_id").(int64)
+	mode := "single"
+	if req.DiscoveryMode {
+		mode = "discovery"
+	} else if len(req.EnabledTools) > 0 {
+		mode = "task"
+	}
+	tools := req.EnabledTools
+	if len(tools) == 0 && req.Tool != "" {
+		tools = []string{req.Tool}
+	}
+	scanRecord, err := models.CreateScanTask(uid, req.TaskName, req.Target, req.Interface, mode, tools)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
 		return
 	}
 
 	// Dispatch scan
 	var scanErr error
 	if req.DiscoveryMode {
-		scanErr = scanner.RunDiscovery(req.Target, req.Interface)
+		scanErr = scanner.RunDiscovery(uid, scanRecord.ID, req.Target, req.Interface)
+	} else if len(req.EnabledTools) > 0 {
+		scanErr = scanner.RunTask(uid, scanRecord.ID, req.Target, req.Interface, req.EnabledTools, req.Parallel, req.Flags)
 	} else {
 		if req.Tool == "" {
 			req.Tool = "nuclei"
 		}
-		scanErr = scanner.RunScannerTool(req.Tool, req.Target, req.Interface, req.Flags)
+		scanErr = scanner.RunScannerTool(uid, scanRecord.ID, req.Tool, req.Target, req.Interface, req.Flags)
 	}
 
 	if scanErr != nil {
-		JSONError(w, scanErr.Error(), http.StatusConflict)
+		JSONResponse(w, models.Response{Success: false, Message: scanErr.Error()}, http.StatusConflict)
 		return
 	}
 
 	mode := req.Tool
 	if req.DiscoveryMode {
 		mode = "discovery (subfinder → httpx → nuclei)"
+	} else if len(req.EnabledTools) > 0 {
+		mode = "task"
 	}
 
 	response := ScanResponse{
@@ -104,16 +131,32 @@ func (as *Server) ScanStatus(w http.ResponseWriter, r *http.Request) {
 // Supports filtering by severity and tool.
 // GET /api/scanner/findings?severity=high&tool=nuclei&limit=100
 func (as *Server) GetFindings(w http.ResponseWriter, r *http.Request) {
-	// TODO: Query the Vantage database (vantage.db) for findings
-	// For now, return placeholder
-	findings := []models.Finding{}
+	uid := ctx.Get(r, "user_id").(int64)
+	severity := strings.TrimSpace(r.URL.Query().Get("severity"))
+	tool := strings.TrimSpace(r.URL.Query().Get("tool"))
+	limit := models.ParseLimit(r.URL.Query().Get("limit"), 500)
+	findings, err := models.GetFindingsForUser(uid, severity, tool, limit)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
 	JSONResponse(w, findings, http.StatusOK)
 }
 
 // DeleteFinding removes a single finding by ID.
 // DELETE /api/scanner/findings/:id
 func (as *Server) DeleteFinding(w http.ResponseWriter, r *http.Request) {
-	// TODO: Delete from Vantage findings table
+	uid := ctx.Get(r, "user_id").(int64)
+	idStr := mux.Vars(r)["id"]
+	id64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "invalid finding id"}, http.StatusBadRequest)
+		return
+	}
+	if err := models.DeleteFindingForUser(uid, uint(id64)); err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
 	JSONResponse(w, models.Response{
 		Success: true,
 		Message: "finding deleted",
@@ -123,7 +166,11 @@ func (as *Server) DeleteFinding(w http.ResponseWriter, r *http.Request) {
 // ClearFindings truncates the findings table (destructive).
 // DELETE /api/scanner/findings
 func (as *Server) ClearFindings(w http.ResponseWriter, r *http.Request) {
-	// TODO: Clear vantage findings table
+	uid := ctx.Get(r, "user_id").(int64)
+	if err := models.ClearFindingsForUser(uid); err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
 	JSONResponse(w, models.Response{
 		Success: true,
 		Message: "all findings cleared",
@@ -133,14 +180,24 @@ func (as *Server) ClearFindings(w http.ResponseWriter, r *http.Request) {
 // GetStats returns severity breakdown of findings.
 // GET /api/scanner/stats
 func (as *Server) GetStats(w http.ResponseWriter, r *http.Request) {
-	stats := map[string]int64{
-		"total":    0,
-		"critical": 0,
-		"high":     0,
-		"medium":   0,
-		"low":      0,
-		"info":     0,
+	uid := ctx.Get(r, "user_id").(int64)
+	stats, err := models.GetFindingStats(uid)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
 	}
-	// TODO: Query Vantage findings to compute stats
 	JSONResponse(w, stats, http.StatusOK)
+}
+
+// ListTasks returns recent task-centric scan jobs.
+// GET /api/scanner/tasks?limit=50
+func (as *Server) ListTasks(w http.ResponseWriter, r *http.Request) {
+	uid := ctx.Get(r, "user_id").(int64)
+	limit := models.ParseLimit(r.URL.Query().Get("limit"), 50)
+	tasks, err := models.ListScanTasks(uid, limit)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
+	JSONResponse(w, tasks, http.StatusOK)
 }
