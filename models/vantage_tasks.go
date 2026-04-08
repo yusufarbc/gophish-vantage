@@ -6,45 +6,45 @@ import (
 	"strings"
 )
 
-// ToolList is a JSON-backed list of enabled scanner tools per task.
-type ToolList []string
+// JSONList is a JSON-backed string list for scanner tools or settings.
+type JSONList string
 
-func (t ToolList) Value() (driver.Value, error) {
-	if len(t) == 0 {
+func (t JSONList) Value() (driver.Value, error) {
+	if t == "" {
 		return "[]", nil
 	}
-	b, err := json.Marshal([]string(t))
-	if err != nil {
-		return nil, err
-	}
-	return string(b), nil
+	return string(t), nil
 }
 
-func (t *ToolList) Scan(value interface{}) error {
+func (t *JSONList) Scan(value interface{}) error {
 	if value == nil {
-		*t = ToolList{}
+		*t = ""
 		return nil
 	}
-	var raw []byte
 	switch v := value.(type) {
 	case []byte:
-		raw = v
+		*t = JSONList(string(v))
 	case string:
-		raw = []byte(v)
+		*t = JSONList(v)
 	default:
-		*t = ToolList{}
+		*t = ""
+	}
+	return nil
+}
+
+func (t JSONList) MarshalJSON() ([]byte, error) {
+	if t == "" {
+		return []byte("[]"), nil
+	}
+	return []byte(t), nil
+}
+
+func (t *JSONList) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 || string(b) == "null" {
+		*t = ""
 		return nil
 	}
-	if len(raw) == 0 {
-		*t = ToolList{}
-		return nil
-	}
-	var parsed []string
-	if err := json.Unmarshal(raw, &parsed); err != nil {
-		*t = ToolList{}
-		return nil
-	}
-	*t = ToolList(parsed)
+	*t = JSONList(string(b))
 	return nil
 }
 
@@ -59,12 +59,13 @@ func CreateScanTask(uid int64, name, target, iface, mode string, tools []string)
 		seen[t] = true
 		clean = append(clean, t)
 	}
+	toolJSON, _ := json.Marshal(clean)
 	s := Scan{
 		UserID:            uid,
 		Name:              strings.TrimSpace(name),
 		Target:            strings.TrimSpace(target),
 		ToolName:          "task",
-		EnabledTools:      ToolList(clean),
+		EnabledTools:      JSONList(string(toolJSON)),
 		OutboundInterface: strings.TrimSpace(iface),
 		Mode:              strings.TrimSpace(mode),
 		Status:            "queued",
@@ -83,6 +84,34 @@ func ListScanTasks(uid int64, limit int) ([]Scan, error) {
 	var scans []Scan
 	err := db.Where("user_id = ?", uid).Order("created_at desc").Limit(limit).Find(&scans).Error
 	return scans, err
+}
+
+func GetScanTask(uid int64, id uint) (Scan, error) {
+	var s Scan
+	err := db.Where("id = ? AND user_id = ?", id, uid).First(&s).Error
+	return s, err
+}
+
+func GetFindingsForScan(uid int64, scanID uint) ([]Finding, error) {
+	var findings []Finding
+	err := db.Where("scan_id = ? AND user_id = ?", scanID, uid).Order("severity asc").Find(&findings).Error
+	return findings, err
+}
+
+func GetScanFindingStats(uid int64, id uint) (map[string]int64, error) {
+	stats := map[string]int64{
+		"critical": 0,
+		"high":     0,
+		"medium":   0,
+		"low":      0,
+		"info":     0,
+	}
+	for _, sev := range []string{"critical", "high", "medium", "low", "info"} {
+		var count int64
+		db.Model(&Finding{}).Where("scan_id = ? AND user_id = ? AND severity = ?", id, uid, sev).Count(&count)
+		stats[sev] = count
+	}
+	return stats, nil
 }
 
 func UpdateScanTaskProgress(scanID uint, status string, progress int) error {

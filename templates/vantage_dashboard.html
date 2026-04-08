@@ -1,10 +1,10 @@
-{{define "vantage_dashboard"}}
+﻿{{define "vantage_dashboard"}}
 <!DOCTYPE html>
 <html lang="en" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vantage | Gophish Security Operations Hub</title>
+    <title>Vantage | Security Operations Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,7 +197,7 @@
             <!-- Footer -->
             <div class="p-6 border-t border-vantage-border text-xs text-gray-500">
                 <p>Vantage v2.0</p>
-                <p>Gophish + ProjectDiscovery</p>
+                <p>Vantage Engine + ProjectDiscovery</p>
             </div>
         </aside>
 
@@ -297,7 +297,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tasks-tbody" class="divide-y divide-gray-800">
-                                    <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>
+                                    <tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -388,7 +388,7 @@
                                     <div class="flex gap-3">
                                         <input type="text" id="route-cidr" placeholder="192.168.1.0/24" class="flex-1 bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-vantage-accent">
                                         <select id="route-iface" class="w-40 bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm outline-none focus:border-vantage-accent">
-                                            <option value="">via interface…</option>
+                                            <option value="">via interfaceâ€¦</option>
                                         </select>
                                         <button onclick="addRoute()" class="bg-vantage-accent hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all active:scale-95 whitespace-nowrap">+ Add Route</button>
                                     </div>
@@ -506,14 +506,31 @@
                         <div id="os-table" class="mt-4 text-sm text-gray-500">No OS fingerprint data yet.</div>
                     </div>
                 </div>
-
-                <!-- Reports Tab -->
-                <div id="tab-reports" class="tab-content hidden p-8 space-y-6">
+                 <div id="tab-reports" class="tab-content hidden p-8 space-y-6">
                     <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <h3 class="text-lg font-bold mb-2">Reports</h3>
-                        <p class="text-sm text-gray-400">PDF/HTML export queue will appear here.</p>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold">Generated Reports</h3>
+                            <button onclick="loadTasks()" class="text-xs text-vantage-accent hover:underline">Refresh List</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="text-gray-400 border-b border-vantage-border">
+                                    <tr>
+                                        <th class="px-3 py-2">Report Name</th>
+                                        <th class="px-3 py-2">Target</th>
+                                        <th class="px-3 py-2">Date</th>
+                                        <th class="px-3 py-2">Status</th>
+                                        <th class="px-3 py-2 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-tbody" class="divide-y divide-gray-800">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+
 
                 <!-- Stress Tests Tab -->
                 <div id="tab-stress-tests" class="tab-content hidden p-8 space-y-6">
@@ -542,13 +559,55 @@
                     </div>
                 </div>
 
-                <!-- Resilience Admin Tab -->
-                <div id="tab-resilience-admin" class="tab-content hidden p-8 space-y-6">
+                <!-- Resilience Admin Tab -->                 <div id="tab-resilience-admin" class="tab-content hidden p-8 space-y-6">
                     <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <h3 class="text-lg font-bold mb-2">Administration</h3>
-                        <p class="text-sm text-gray-400">User management and Vantage Agent configuration panel.</p>
+                        <h3 class="text-lg font-bold mb-4">Administration</h3>
+                        
+                        <div class="space-y-6">
+                            <!-- Notification Settings -->
+                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    <h4 class="font-semibold">Notification Center (Slack/Telegram)</h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-2">
+                                        <label class="flex items-center gap-2 text-sm text-gray-300">
+                                            <input type="checkbox" id="notify-enabled" class="rounded border-gray-700 bg-vantage-bg">
+                                            Enable Notifications for Critical/High Findings
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Slack Webhook URL</label>
+                                        <input id="notify-slack" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="https://hooks.slack.com/services/â€¦">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Telegram Bot Token</label>
+                                        <input id="notify-tg-token" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="0000000000:AAEbâ€¦">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Telegram Chat ID</label>
+                                        <input id="notify-tg-chat" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="-100123456789">
+                                    </div>
+                                    <div class="flex items-end">
+                                        <button onclick="saveNotifyConfig()" class="w-full bg-vantage-accent hover:bg-green-700 text-white font-bold py-2 rounded text-xs transition-colors">Save Settings</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vantage Agent -->
+                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
+                                <h4 class="font-semibold mb-2">Vantage Agent Status</h4>
+                                <p class="text-sm text-gray-400">Current status of the L3 reverse tunnel engine.</p>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <div id="admin-agent-dot" class="w-2 h-2 rounded-full bg-gray-600"></div>
+                                    <span id="admin-agent-label" class="text-sm text-gray-500 uppercase font-mono">Inactive</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
 
                 <!-- Campaigns Tab -->
                 <div id="tab-campaigns" class="tab-content hidden p-8 space-y-6">
@@ -565,7 +624,7 @@
     </div>
 
     <script>
-        // ── Tab Management ────────────────────────────────────────────────────────
+        // â”€â”€ Tab Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -608,7 +667,7 @@
             group.classList.toggle('open');
         }
 
-        // ── Task-Centric Workflow ───────────────────────────────────────────────
+        // â”€â”€ Task-Centric Workflow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         let ws = null;
         let agentPollInterval = null;
@@ -636,7 +695,7 @@
             loadTasks();
         }
 
-        // ── Interface Dropdowns ───────────────────────────────────────────────────
+        // â”€â”€ Interface Dropdowns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function loadInterfaceDropdowns() {
             try {
@@ -651,12 +710,12 @@
 
                 // Preserve default option
                 if (scanSelect) scanSelect.innerHTML = '<option value="">Default (eth0)</option>';
-                if (routeSelect) routeSelect.innerHTML = '<option value="">via interface…</option>';
+                if (routeSelect) routeSelect.innerHTML = '<option value="">via interfaceâ€¦</option>';
                 if (stressSelect) stressSelect.innerHTML = '<option value="">Default (eth0)</option>';
 
                 ifaces.forEach(iface => {
                     const label = iface.is_tun
-                        ? `${iface.name} ⟵ TUN (${iface.addresses.join(', ') || 'no IP'})`
+                        ? `${iface.name} âŸµ TUN (${iface.addresses.join(', ') || 'no IP'})`
                         : `${iface.name} (${iface.addresses.join(', ') || 'no IP'})`;
 
                     const opt1 = new Option(label, iface.name);
@@ -670,7 +729,7 @@
             }
         }
 
-        // ── Tunnel Controls ───────────────────────────────────────────────────────
+        // â”€â”€ Tunnel Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function startTunnel() {
             try {
@@ -707,10 +766,10 @@
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    msg.textContent = `✔ Route added: ${cidr} via ${iface}`;
+                    msg.textContent = `âœ” Route added: ${cidr} via ${iface}`;
                     msg.className = 'text-xs mt-2 text-green-400';
                 } else {
-                    msg.textContent = `✘ ${data.message}`;
+                    msg.textContent = `âœ˜ ${data.message}`;
                     msg.className = 'text-xs mt-2 text-red-400';
                 }
             } catch (e) {
@@ -719,7 +778,7 @@
             }
         }
 
-        // ── Agent Status Polling ──────────────────────────────────────────────────
+        // â”€â”€ Agent Status Polling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function pollAgentStatus() {
             try {
@@ -736,7 +795,7 @@
                     dot.className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse transition-colors duration-500';
                     label.textContent = 'Agent Connected';
                     label.className = 'text-xs text-green-400 font-semibold';
-                    ip.textContent = `${data.tun_interface} — ${data.tun_ip}`;
+                    ip.textContent = `${data.tun_interface} â€” ${data.tun_ip}`;
                 } else {
                     dot.className = 'w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500';
                     label.textContent = 'Disconnected';
@@ -754,7 +813,7 @@
                     }
                 }
             } catch (e) {
-                // Silently fail — server may be initializing
+                // Silently fail â€” server may be initializing
             }
         }
 
@@ -826,6 +885,11 @@
                         ? '<span class="px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300">Done</span>'
                         : `<span class="px-2 py-1 text-xs rounded ${running ? 'bg-green-900/50 text-green-300' : 'bg-gray-700 text-gray-300'}">${t.status || 'queued'}</span>`;
                     const progress = Number(t.progress || 0);
+                    
+                    const actionBtn = done 
+                        ? `<button onclick="downloadReport(${t.id})" class="text-vantage-accent hover:underline flex items-center h-full"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF</button>`
+                        : '';
+
                     return `
                         <tr class="hover:bg-gray-900/30">
                             <td class="px-3 py-2">${t.name || '-'}</td>
@@ -834,18 +898,76 @@
                             <td class="px-3 py-2">${badge}</td>
                             <td class="px-3 py-2 w-48">
                                 <div class="w-full bg-gray-800 rounded h-2"><div class="h-2 rounded ${running ? 'bg-green-400' : 'bg-gray-500'}" style="width:${progress}%"></div></div>
-                                <div class="text-[11px] text-gray-400 mt-1">${progress}% Running</div>
+                                <div class="text-[11px] text-gray-400 mt-1">${progress}% ${t.status || ''}</div>
                             </td>
                             <td class="px-3 py-2 text-xs">${(t.enabled_tools || []).join(', ')}</td>
+                            <td class="px-3 py-2 text-right">${actionBtn}</td>
                         </tr>
                     `;
-                }).join('') || '<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>';
+                }).join('') || '<tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>';
+                renderReportsTable(tasks);
             } catch (e) {
                 console.error('Load tasks error:', e);
             }
         }
 
-        // ── Findings ──────────────────────────────────────────────────────────────
+        function renderReportsTable(tasks) {
+            const tbody = document.getElementById('reports-tbody');
+            if (!tbody) return;
+            const completed = (tasks || []).filter(t => (t.status || '').toLowerCase() === 'done');
+            tbody.innerHTML = completed.map(t => `
+                <tr class="hover:bg-gray-900/30">
+                    <td class="px-3 py-2 font-medium">${t.name}</td>
+                    <td class="px-3 py-2 font-mono text-gray-400">${t.target}</td>
+                    <td class="px-3 py-2 text-xs text-gray-500">${new Date(t.updated_at || t.created_at).toLocaleString()}</td>
+                    <td class="px-3 py-2"><span class="px-2 py-1 text-[10px] bg-green-900/30 text-green-400 rounded">Available</span></td>
+                    <td class="px-3 py-2 text-right">
+                        <button onclick="downloadReport(${t.id})" class="px-3 py-1 bg-vantage-accent/20 hover:bg-vantage-accent/40 text-vantage-accent rounded text-xs font-bold transition-all">Download PDF</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">No reports available. Complete a task to generate a report.</td></tr>';
+        }
+
+        function downloadReport(scanId) {
+            window.open(`/api/v1/scanner/report/${scanId}`, '_blank');
+        }
+
+        async function saveNotifyConfig() {
+            const enabled = document.getElementById('notify-enabled').checked;
+            const slack = document.getElementById('notify-slack').value;
+            const tgToken = document.getElementById('notify-tg-token').value;
+            const tgChat = document.getElementById('notify-tg-chat').value;
+
+            try {
+                const resp = await secureFetch('/api/v1/settings/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enabled,
+                        slack_webhook: slack,
+                        telegram_token: tgToken,
+                        telegram_chat_id: tgChat
+                    })
+                });
+                if (resp.ok) alert('Notification settings saved successfully');
+                else alert('Failed to save settings: ' + await resp.text());
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        async function loadNotifyConfig() {
+             try {
+                const resp = await fetch('/api/v1/settings/notifications');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (!data) return;
+                document.getElementById('notify-enabled').checked = data.enabled || false;
+                document.getElementById('notify-slack').value = data.slack_webhook || '';
+                document.getElementById('notify-tg-token').value = data.telegram_token || '';
+                document.getElementById('notify-tg-chat').value = data.telegram_chat_id || '';
+            } catch (e) {}
+        }
+
+        // â”€â”€ Findings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function loadFindings() {
             try {
@@ -874,7 +996,7 @@
             // TODO: Filter findings by severity
         }
 
-        // ── Targets ───────────────────────────────────────────────────────────────
+        // â”€â”€ Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function importTargets() {
             const input = document.getElementById('targets-input').value.trim();
@@ -1014,7 +1136,7 @@
             } catch (e) {}
         }
 
-        // ── Dashboard ─────────────────────────────────────────────────────────────
+        // â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function initDashboard() {
             try {
@@ -1051,7 +1173,7 @@
             }
         }
 
-        // ── Campaigns ─────────────────────────────────────────────────────────────
+        // â”€â”€ Campaigns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         async function loadCampaigns() {
             try {
@@ -1080,11 +1202,11 @@
         }
 
         function newCampaign() {
-            alert('Campaign creation redirects to Gophish admin UI');
+            // Smoothly redirect to the campaign creation interface
             window.location.href = '/campaigns';
         }
 
-        // ── CSRF Token Protection ──────────────────────────────────────────────
+        // â”€â”€ CSRF Token Protection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const CSRF_TOKEN = "{{ .Token }}";  // Injected by Go template engine
         
         // Add CSRF token to all fetch requests
@@ -1101,6 +1223,7 @@
             pollAgentStatus();
             agentPollInterval = setInterval(pollAgentStatus, 5000);
             setInterval(loadTasks, 7000);
+            loadNotifyConfig();
         });
     </script>
 </body>

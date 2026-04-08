@@ -165,7 +165,7 @@ function deleteCampaign() {
 function completeCampaign() {
     Swal.fire({
         title: "Are you sure?",
-        text: "Gophish will stop processing events for this campaign",
+        text: "Vantage will stop processing events for this campaign",
         type: "warning",
         animation: false,
         showCancelButton: true,
@@ -726,7 +726,7 @@ function load() {
         .success(function (c) {
             campaign = c
             if (campaign) {
-                $("title").text(c.name + " - Gophish")
+                $("title").text(c.name + " - Vantage")
                 $("#loading").hide()
                 $("#campaignResults").show()
                 // Set the title

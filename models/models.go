@@ -186,10 +186,17 @@ func Setup(c *config.Config) error {
 	}
 	db.LogMode(false)
 	db.SetLogger(log.Logger)
-	db.DB().SetMaxOpenConns(1)
-	if err != nil {
-		log.Error(err)
-		return err
+	// SQLite Concurrency optimization: Enable WAL mode for mass JSON parsing from ProjectDiscovery tools.
+	// This prevents the "database is locked" error during concurrent writes.
+	if conf.DBName == "sqlite3" {
+		db.DB().SetMaxOpenConns(1)
+		db.Exec("PRAGMA journal_mode=WAL;")
+		db.Exec("PRAGMA synchronous=NORMAL;")
+		db.Exec("PRAGMA busy_timeout=5000;")
+	} else {
+		db.DB().SetMaxOpenConns(25)
+		db.DB().SetMaxIdleConns(5)
+		db.DB().SetConnMaxLifetime(time.Hour)
 	}
 	// Migrate up to the latest version
 	err = goose.RunMigrationsOnDb(migrateConf, migrateConf.MigrationsDir, latest, db.DB())

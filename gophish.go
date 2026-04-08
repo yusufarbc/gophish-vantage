@@ -41,6 +41,7 @@ import (
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/middleware"
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/notifier"
 	"github.com/gophish/gophish/scanner"
 	"github.com/gophish/gophish/webhook"
 )
@@ -100,6 +101,11 @@ func main() {
 	err = models.Setup(conf)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Setup the notifier
+	if conf.Notifications != nil {
+		notifier.Setup(conf.Notifications)
 	}
 
 	// Unlock any maillogs that may have been locked for processing

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/notifier"
 	"github.com/gophish/gophish/pkg/network"
 	"github.com/gorilla/websocket"
 )
@@ -149,6 +150,47 @@ func (s *ScanState) Status() (bool, string, string, time.Time) {
 	return s.Running, s.Tool, s.Target, s.Started
 }
 
+// ── Active Scan Context Management ───────────────────────────────────────────
+
+var (
+	activeScans   = make(map[uint]context.CancelFunc)
+	activeScansMu sync.Mutex
+)
+
+// RegisterScan tracks a scan context by its task ID.
+func RegisterScan(scanID uint, cancel context.CancelFunc) {
+	activeScansMu.Lock()
+	defer activeScansMu.Unlock()
+	activeScans[scanID] = cancel
+}
+
+// UnregisterScan removes a scan context.
+func UnregisterScan(scanID uint) {
+	activeScansMu.Lock()
+	defer activeScansMu.Unlock()
+	delete(activeScans, scanID)
+}
+
+// StopScan terminates an active scan and all its child processes.
+func StopScan(scanID uint) error {
+	activeScansMu.Lock()
+	cancel, ok := activeScans[scanID]
+	activeScansMu.Unlock()
+
+	if !ok {
+		return fmt.Errorf("no active scan found for ID %d", scanID)
+	}
+
+	// Terminate the Go context
+	cancel()
+	UnregisterScan(scanID)
+
+	// Update status in models
+	_ = models.UpdateScanTaskProgress(scanID, "stopped", 0)
+	emitLog(fmt.Sprintf("[VANTAGE] !! Scan %d stopped by user", scanID))
+	return nil
+}
+
 // ── Scanner Engine ───────────────────────────────────────────────────────────
 
 // emitLog broadcasts a log message to all WebSocket clients and console.
@@ -191,7 +233,19 @@ func RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName strin
 		_ = models.UpdateScanTaskProgress(scanID, "running", 20)
 		args := buildScannerArgs(toolName, target, ifaceName, extraFlags)
 		emitLog(fmt.Sprintf("[VANTAGE] ▶ Starting %s on target=%s (iface=%s)", strings.ToUpper(toolName), target, ifaceName))
-		runAndStreamTool(context.Background(), userID, toolName, target, ifaceName, args)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		RegisterScan(scanID, cancel)
+		defer UnregisterScan(scanID)
+
+		runAndStreamTool(ctx, userID, toolName, target, ifaceName, args)
+		
+		// check if context was cancelled
+		if ctx.Err() != nil {
+			emitLog(fmt.Sprintf("[VANTAGE] !! %s terminated", strings.ToUpper(toolName)))
+			return
+		}
+		
 		_ = models.UpdateScanTaskProgress(scanID, "running", 90)
 		emitLog(fmt.Sprintf("[VANTAGE] ✔ %s finished", strings.ToUpper(toolName)))
 	}()
@@ -224,10 +278,17 @@ func RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
 		emitLog("[VANTAGE] ═══ DISCOVERY MODE ══════════════════════════")
 		_ = models.UpdateScanTaskProgress(scanID, "running", 10)
 
+		ctx, cancel := context.WithCancel(context.Background())
+		RegisterScan(scanID, cancel)
+		defer UnregisterScan(scanID)
+
 		// Phase 1: Subdomain enumeration
 		emitLog("[VANTAGE] Phase 1 — Subdomain Enumeration (subfinder)")
-		subdomains := collectTargets(context.Background(), userID, "subfinder", target, ifaceName,
+		subdomains := collectTargets(ctx, userID, "subfinder", target, ifaceName,
 			[]string{"subfinder", "-d", target, "-json", "-silent"})
+		
+		if ctx.Err() != nil { return }
+
 		if len(subdomains) == 0 {
 			subdomains = []string{target}
 			emitLog("[VANTAGE] No subdomains found, using original target")
@@ -239,7 +300,10 @@ func RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
 		// Phase 2: HTTP probing
 		emitLog("[VANTAGE] Phase 2 — HTTP Service Discovery (httpx)")
 		aliveArgs := append([]string{"httpx", "-json", "-silent"}, hostToArgs(subdomains)...)
-		alive := collectTargets(context.Background(), userID, "httpx", target, ifaceName, aliveArgs)
+		alive := collectTargets(ctx, userID, "httpx", target, ifaceName, aliveArgs)
+		
+		if ctx.Err() != nil { return }
+
 		if len(alive) == 0 {
 			alive = subdomains
 			emitLog("[VANTAGE] No alive HTTP services found, falling back to subdomains")
@@ -251,12 +315,15 @@ func RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
 		// Phase 3: Vulnerability scan
 		emitLog(fmt.Sprintf("[VANTAGE] Phase 3 — Vulnerability Scan (nuclei) - %d targets", len(alive)))
 		for _, host := range alive {
+			if ctx.Err() != nil { break }
 			host = strings.TrimSpace(host)
 			if host != "" {
 				args := []string{"nuclei", "-u", host, "-json", "-silent"}
-				runAndStreamTool(context.Background(), userID, "nuclei", host, ifaceName, args)
+				runAndStreamTool(ctx, userID, "nuclei", host, ifaceName, args)
 			}
 		}
+		
+		if ctx.Err() != nil { return }
 		_ = models.UpdateScanTaskProgress(scanID, "running", 90)
 
 		emitLog("[VANTAGE] ═══ DISCOVERY COMPLETE ════════════════════════")
@@ -292,9 +359,14 @@ func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string
 		emitLog(fmt.Sprintf("[VANTAGE] ▶ Task started with %d tools on %s", len(tools), target))
 		_ = models.UpdateScanTaskProgress(scanID, "running", 5)
 
+		ctx, cancel := context.WithCancel(context.Background())
+		RegisterScan(scanID, cancel)
+		defer UnregisterScan(scanID)
+
 		if parallel {
 			var wg sync.WaitGroup
 			for _, tool := range tools {
+				if ctx.Err() != nil { break }
 				tool = strings.TrimSpace(strings.ToLower(tool))
 				if tool == "" {
 					continue
@@ -303,13 +375,14 @@ func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string
 				go func(t string) {
 					defer wg.Done()
 					args := buildScannerArgs(t, target, ifaceName, extraFlags)
-					runAndStreamTool(context.Background(), userID, t, target, ifaceName, args)
+					runAndStreamTool(ctx, userID, t, target, ifaceName, args)
 				}(tool)
 			}
 			wg.Wait()
 		} else {
 			total := len(tools)
 			for i, tool := range tools {
+				if ctx.Err() != nil { break }
 				tool = strings.TrimSpace(strings.ToLower(tool))
 				if tool == "" {
 					continue
@@ -318,9 +391,11 @@ func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string
 				_ = models.UpdateScanTaskProgress(scanID, "running", stepProgress)
 				emitLog(fmt.Sprintf("[VANTAGE] ▶ Task step %d/%d: %s", i+1, total, strings.ToUpper(tool)))
 				args := buildScannerArgs(tool, target, ifaceName, extraFlags)
-				runAndStreamTool(context.Background(), userID, tool, target, ifaceName, args)
+				runAndStreamTool(ctx, userID, tool, target, ifaceName, args)
 			}
 		}
+		
+		if ctx.Err() != nil { return }
 		emitLog("[VANTAGE] ✔ Task completed")
 	}()
 
@@ -382,6 +457,11 @@ func runAndStreamTool(ctx context.Context, userID int64, toolName, scanTarget, i
 
 	wg.Wait()
 	if err := cmd.Wait(); err != nil {
+		if ctx.Err() != nil {
+			// Kill the entire process group
+			_ = killProcessGroup(cmd.Process.Pid)
+			return
+		}
 		emitLog(fmt.Sprintf("[WARN] %s exited: %v", args[0], err))
 	}
 }
@@ -452,7 +532,12 @@ func collectTargets(ctx context.Context, userID int64, parseAs, scanTarget, ifac
 	}()
 
 	wg.Wait()
-	cmd.Wait()
+	if err := cmd.Wait(); err != nil {
+		if ctx.Err() != nil {
+			// Kill the entire process group
+			_ = killProcessGroup(cmd.Process.Pid)
+		}
+	}
 	return targets
 }
 
@@ -484,6 +569,9 @@ func persistToolLine(userID int64, toolName, scanTarget, ifaceName, line string)
 	}
 	if err := models.UpsertFindingFromTool(userID, toolName, severity, name, target, detail, templateID, ifaceName); err != nil {
 		emitLog(fmt.Sprintf("[WARN] finding persistence failed: %v", err))
+	} else {
+		// Send notification for critical/high findings
+		notifier.SendAlert(toolName, severity, name, target)
 	}
 	if strings.EqualFold(toolName, "subfinder") || strings.EqualFold(toolName, "uncover") {
 		if err := models.UpsertDiscoveredTarget(userID, target, toolName); err != nil {

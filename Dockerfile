@@ -10,7 +10,7 @@ RUN gulp
 
 
 # Build Golang binary
-FROM golang:1.20 AS build-golang
+FROM golang:1.24 AS build-golang
 
 WORKDIR /go/src/github.com/gophish/gophish
 COPY . .
@@ -18,23 +18,25 @@ RUN go get -v && go build -v
 
 
 # Build and pin security tooling binaries
-FROM golang:1.20 AS pd-tools
+FROM golang:1.24 AS pd-tools
+RUN apt-get update && apt-get install -y libpcap-dev
 
-RUN go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
-	go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest && \
-	go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
-	go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest && \
-	go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest && \
-	go install -v github.com/projectdiscovery/katana/cmd/katana@latest && \
-	go install -v github.com/projectdiscovery/tlsx/cmd/tlsx@latest && \
-	go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest && \
-	go install -v github.com/projectdiscovery/uncover/cmd/uncover@latest && \
-	go install -v github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest && \
-	go install -v github.com/projectdiscovery/cloudlist/cmd/cloudlist@latest && \
+RUN go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.6.6 && \
+	go install -v github.com/projectdiscovery/httpx/cmd/httpx@v1.6.0 && \
+	go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@v3.2.9 && \
+	go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@v2.3.1 && \
+	go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@v1.2.1 && \
+	go install -v github.com/projectdiscovery/katana/cmd/katana@v1.1.0 && \
+	go install -v github.com/projectdiscovery/tlsx/cmd/tlsx@v1.1.6 && \
+	go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@v1.1.0 && \
+	go install -v github.com/projectdiscovery/uncover/cmd/uncover@v1.0.7 && \
+	go install -v github.com/projectdiscovery/interactsh/cmd/interactsh-client@v1.1.9 && \
+	go install -v github.com/projectdiscovery/cloudlist/cmd/cloudlist@v1.0.6 && \
 	go install -v github.com/tomnomnom/assetfinder@latest && \
-	go install -v github.com/rakyll/hey@latest && \
-	go install -v github.com/codesenberg/bombardier@latest && \
-	go install -v github.com/tsenart/vegeta@latest
+	go install -v github.com/rakyll/hey@v0.1.4 && \
+	go install -v github.com/codesenberg/bombardier@v1.2.6 && \
+	go install -v github.com/tsenart/vegeta/v12@v12.12.0 && \
+	go install -v github.com/projectdiscovery/notify/cmd/notify@latest
 
 
 
@@ -84,6 +86,7 @@ COPY --from=pd-tools /go/bin/assetfinder /usr/local/bin/assetfinder
 COPY --from=pd-tools /go/bin/hey /usr/local/bin/hey
 COPY --from=pd-tools /go/bin/bombardier /usr/local/bin/bombardier
 COPY --from=pd-tools /go/bin/vegeta /usr/local/bin/vegeta
+COPY --from=pd-tools /go/bin/notify /usr/local/bin/notify
 RUN chown app. config.json
 RUN sed -i 's/\r$//' ./docker/run.sh
 RUN chmod +x ./docker/run.sh

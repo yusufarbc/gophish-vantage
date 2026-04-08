@@ -1,9 +1,9 @@
 {
 	"admin_server": {
 		"listen_url": "127.0.0.1:3333",
-		"use_tls": true,
-		"cert_path": "gophish_admin.crt",
-		"key_path": "gophish_admin.key",
+		"use_tls": false,
+		"cert_path": "vantage_admin.crt",
+		"key_path": "vantage_admin.key",
 		"trusted_origins": []
 	},
 	"phish_server": {
@@ -13,11 +13,18 @@
 		"key_path": "example.key"
 	},
 	"db_name": "sqlite3",
-	"db_path": "gophish.db",
+	"db_path": "vantage.db",
 	"migrations_prefix": "db/db_",
 	"contact_address": "",
 	"logging": {
 		"filename": "",
 		"level": ""
+	},
+	"notifications": {
+		"enabled": false,
+		"slack_webhook": "",
+		"telegram_token": "",
+		"telegram_chat_id": "",
+		"notify_config": "config/notify.yaml"
 	}
 }

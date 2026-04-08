@@ -12,7 +12,7 @@ type Scan struct {
 	Name             string    `gorm:"size:255;index" json:"name"`
 	Target           string    `gorm:"not null;index" json:"target"`
 	ToolName         string    `gorm:"index" json:"tool_name"`
-	EnabledTools     ToolList  `gorm:"type:text" json:"enabled_tools"`
+	EnabledTools     JSONList  `gorm:"type:text" json:"enabled_tools"`
 	OutboundInterface string   `gorm:"size:64;index" json:"outbound_interface"`
 	Mode             string    `json:"mode"` // "single" | "discovery" | "task"
 	Status           string    `gorm:"default:'queued';index" json:"status"`
@@ -85,7 +85,7 @@ type UserNetworkConfig struct {
 	// - "tailscale0" (route through Tailscale VPN)
 	// - "tun0" (custom VPN tunnel)
 	// - "eth1" (secondary network interface)
-	AllowedInterfaces []string `gorm:"serializer:json" json:"allowed_interfaces"` // JSON array of available options
+	AllowedInterfaces JSONList `gorm:"type:text" json:"allowed_interfaces"` // JSON array of available options
 	CreatedAt        time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

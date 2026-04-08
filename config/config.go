@@ -26,6 +26,15 @@ type PhishServer struct {
 	KeyPath   string `json:"key_path"`
 }
 
+// NotificationConfig represents the notification settings
+type NotificationConfig struct {
+	Enabled        bool   `json:"enabled"`
+	SlackWebhook   string `json:"slack_webhook"`
+	TelegramToken  string `json:"telegram_token"`
+	TelegramChatID string `json:"telegram_chat_id"`
+	NotifyConfig   string `json:"notify_config"` // Path to notify config file
+}
+
 // Config represents the configuration information.
 type Config struct {
 	AdminConf      AdminServer `json:"admin_server"`
@@ -35,12 +44,20 @@ type Config struct {
 	DBSSLCaPath    string      `json:"db_sslca_path"`
 	MigrationsPath string      `json:"migrations_prefix"`
 	TestFlag       bool        `json:"test_flag"`
-	ContactAddress string      `json:"contact_address"`
-	Logging        *log.Config `json:"logging"`
+	ContactAddress string              `json:"contact_address"`
+	Logging        *log.Config         `json:"logging"`
+	Notifications  *NotificationConfig `json:"notifications"`
 }
 
 // Version contains the current gophish version
 var Version = ""
+
+var globalConfig *Config
+
+// GetConfig returns the global application configuration.
+func GetConfig() *Config {
+	return globalConfig
+}
 
 // ServerName is the server type that is returned in the transparency response.
 const ServerName = "gophish"
@@ -64,5 +81,6 @@ func LoadConfig(filepath string) (*Config, error) {
 	config.MigrationsPath = config.MigrationsPath + config.DBName
 	// Explicitly set the TestFlag to false to prevent config.json overrides
 	config.TestFlag = false
+	globalConfig = config
 	return config, nil
 }

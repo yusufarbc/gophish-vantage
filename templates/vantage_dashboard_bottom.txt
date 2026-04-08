@@ -1,0 +1,110 @@
+        function consumeStressMetric(line) {
+            const marker = '[STRESS_METRIC]';
+            if (!line.includes(marker)) return;
+            const start = line.indexOf('{');
+            if (start === -1) return;
+            try {
+                const point = JSON.parse(line.slice(start));
+                stressLabels.push(String(point.t));
+                stressValues.push(Number(point.latency_ms || 0));
+                if (stressLabels.length > 50) {
+                    stressLabels.shift();
+                    stressValues.shift();
+                }
+                if (stressLatencyChart) stressLatencyChart.update();
+            } catch (e) {}
+        }
+
+        // ── Dashboard ─────────────────────────────────────────────────────────────
+
+        async function initDashboard() {
+            try {
+                const stats = await fetch('/api/scanner/stats').then(r => r.json());
+                document.getElementById('stat-total').textContent = stats.total || 'N/A';
+                document.getElementById('stat-critical').textContent = stats.critical || '0';
+
+                const mail = await fetch('/api/v1/mail/queue').then(r => r.json());
+                document.getElementById('mail-sent').textContent = mail.sent || 0;
+                document.getElementById('mail-deferred').textContent = mail.deferred || 0;
+                document.getElementById('mail-queued').textContent = mail.queued || 0;
+
+                // Initialize charts
+                initCharts();
+            } catch (e) {
+                console.error('Dashboard init error:', e);
+            }
+        }
+
+        function initCharts() {
+            const severityCtx = document.getElementById('severityChart')?.getContext('2d');
+            if (severityCtx) {
+                new Chart(severityCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                        datasets: [{
+                            data: [5, 12, 24, 8, 3],
+                            backgroundColor: ['#d498ff', '#ff7b72', '#ffd500', '#8b949e', '#58a6ff']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { labels: { color: '#c9d1d9' } } } }
+                });
+            }
+        }
+
+        // ── Campaigns ─────────────────────────────────────────────────────────────
+
+        async function loadCampaigns() {
+            try {
+                const resp = await fetch('/api/campaigns/');
+                const campaigns = await resp.json() || [];
+                const list = document.getElementById('campaigns-list');
+                list.innerHTML = campaigns.map(c => `
+                    <div class="glass-card p-6 rounded-lg border border-vantage-border">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-semibold text-lg">${c.name}</h4>
+                                <p class="text-sm text-gray-500">${c.status}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 text-sm">
+                            <div><p class="text-gray-500 text-xs">Sent</p><p class="font-bold">${c.total_targets || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Opened</p><p class="font-bold text-green-400">${c.emails_opened || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Clicked</p><p class="font-bold text-yellow-400">${c.links_clicked || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Submitted</p><p class="font-bold text-red-400">${c.data_submitted || 0}</p></div>
+                        </div>
+                    </div>
+                `).join('') || '<p class="text-gray-500 text-center py-8">No campaigns</p>';
+            } catch (e) {
+                console.error('Load campaigns error:', e);
+            }
+        }
+
+        function newCampaign() {
+            // Smoothly redirect to the campaign creation interface
+            window.location.href = '/campaigns';
+        }
+
+        // ── CSRF Token Protection ──────────────────────────────────────────────
+        const CSRF_TOKEN = "{{ .Token }}";  // Injected by Go template engine
+        
+        // Add CSRF token to all fetch requests
+        function secureFetch(path, options = {}) {
+            options.headers = options.headers || {};
+            options.headers['X-CSRF-Token'] = CSRF_TOKEN;
+            return fetch(path, options);
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            switchTab('dashboard');
+            // Start polling the agent/tunnel status every 5 seconds
+            pollAgentStatus();
+            agentPollInterval = setInterval(pollAgentStatus, 5000);
+            setInterval(loadTasks, 7000);
+            loadNotifyConfig();
+        });
+    </script>
+</body>
+</html>
+{{end}}

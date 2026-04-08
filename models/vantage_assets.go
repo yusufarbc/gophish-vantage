@@ -248,13 +248,18 @@ func GetFindingStats(uid int64) (map[string]int64, error) {
 		"low":      0,
 		"info":     0,
 	}
-	if err := db.Model(&Finding{}).Where("user_id = ?", uid).Count(&stats["total"]).Error; err != nil {
+	var total int64
+	if err := db.Model(&Finding{}).Where("user_id = ?", uid).Count(&total).Error; err != nil {
 		return stats, err
 	}
+	stats["total"] = total
+
 	for _, sev := range []string{"critical", "high", "medium", "low", "info"} {
-		if err := db.Model(&Finding{}).Where("user_id = ? AND severity = ?", uid, sev).Count(&stats[sev]).Error; err != nil {
+		var sevCount int64
+		if err := db.Model(&Finding{}).Where("user_id = ? AND severity = ?", uid, sev).Count(&sevCount).Error; err != nil {
 			return stats, err
 		}
+		stats[sev] = sevCount
 	}
 	return stats, nil
 }

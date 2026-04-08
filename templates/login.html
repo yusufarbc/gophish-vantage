@@ -6,49 +6,111 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Gophish - Open-Source Phishing Toolkit">
-    <meta name="author" content="Jordan Wright (http://github.com/jordan-wright)">
-    <link rel="shortcut icon" href="/images/favicon.ico">
+    <meta name="description" content="Vantage Security Hub - Advanced Penetration Testing & Phishing Simulation Platform">
+    <meta name="author" content="Vantage Security">
+    <link rel="shortcut icon" href="/images/favicon.png">
 
-    <title>Gophish - {{ .Title }}</title>
+    <title>Vantage - {{ .Title }}</title>
 
-    <link href="/css/dist/gophish.css" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700' rel='stylesheet' type='text/css'>
+    <link href="/css/dist/vantage.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #0f172a, #020617);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+        .navbar { display: none; }
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-signin {
+            margin: 0 auto;
+        }
+        #logo {
+            display: block;
+            margin: 0 auto 30px auto;
+            max-width: 180px;
+            filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));
+        }
+        .form-signin-heading {
+            color: #f8fafc;
+            text-align: center;
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+        }
+        .form-control {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            padding: 12px 16px;
+            height: auto;
+            border-radius: 12px !important;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            background: rgba(15, 23, 42, 1);
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(6, 182, 212, 0.5);
+            filter: brightness(1.1);
+        }
+        .alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <img class="navbar-logo" src="/images/logo_inv_small.png" />
-                <a class="navbar-brand" href="/">&nbsp;gophish</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a id="login-button" href="/login">
-                            <button type="button" class="btn btn-primary">Login</button>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
     <div class="container">
         <form class="form-signin" action="" method="POST">
-            <img id="logo" src="/images/logo_purple.png" />
-            <h2 class="form-signin-heading">Please sign in</h2>
+            <img id="logo" src="/images/vantage_logo_inv.png" alt="Vantage Security Hub" />
+            <h2 class="form-signin-heading">Vantage Security Hub</h2>
             {{template "flashes" .Flashes}}
-            <input type="text" name="username" class="form-control top-input" placeholder="Username" required autofocus>
-            <input type="password" name="password" class="form-control bottom-input" placeholder="Password" autocomplete="off" required>
+            <input type="text" name="username" class="form-control" placeholder="Username" required autofocus>
+            <input type="password" name="password" class="form-control" placeholder="Password" autocomplete="off" required>
             <input type="hidden" name="csrf_token" value="{{.Token}}" />
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Unlock System</button>
         </form>
     </div>
     <!-- Placed at the end of the document so the pages load faster -->

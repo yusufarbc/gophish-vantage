@@ -1,127 +1,56 @@
+
 services:
-  vantage-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: vantage-app
+  vantage-core:
+    build: .
+    container_name: vantage-core
     restart: unless-stopped
-    environment:
-      # Admin and Phishing server ports can be customized here
-      GOPHISH_ADMIN_PORT: "3333"
-      GOPHISH_PHISH_PORT: "80"
     ports:
-      - "3333:3333"  # Admin UI
-      - "8080:80"    # Phishing server (HTTP)
-      - "9090:9090"  # Chisel reverse tunnel listener (agent connects here)
+      - "3333:3333" # Admin UI
+      - "80:80"     # Phish Listener
+      - "443:443"   # Phish Listener TLS
+      - "9090:9090" # Chisel Server
     volumes:
-      - gophish_data:/app/data
-      - ./config.json:/app/config.json:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-qO-", "https://localhost:3333/login"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./config.json:/app/config.json
     cap_add:
-      - NET_RAW      # Required for ICMP/raw socket operations in scanning
-      - NET_ADMIN    # For interface management (create TUN devices, set routes)
+      - NET_ADMIN
     devices:
-      - /dev/net/tun:/dev/net/tun  # Required for Chisel reverse TUN tunnel
-    security_opt:
-      - seccomp:unconfined  # Allow unconfined syscalls for scanning tools
-    privileged: true
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - DB_NAME=sqlite3
+      - DB_PATH=/app/vantage.db
     networks:
-      - gophish-net
-    depends_on:
-      - postfix
+      - vantage-net
 
-  # Optional standalone upstream engine service name for split deployments.
-  # In this fork, vantage-app already embeds the gophish engine runtime.
-  gophish-engine:
-    image: vantage-app:latest
-    profiles: ["split"]
-    depends_on:
-      - vantage-app
-    networks:
-      - gophish-net
-
-  # Postfix for local mail delivery
   postfix:
-    image: boky/postfix:latest
-    container_name: gophish-postfix
+    image: mwader/postfix-relay
+    container_name: vantage-postfix
     restart: unless-stopped
     environment:
-      HOSTNAME: "gophish.local"
-      ALLOWED_SENDER_DOMAINS: "localhost gophish.local 127.0.0.1"
-      # Set to your SMTP relay if needed (optional)
-      # RELAYHOST: "[smtp.relay.com]:587"
-      # RELAYHOST_USERNAME: "username"
-      # RELAYHOST_PASSWORD: "password"
-    ports:
-      - "25:25"      # SMTP (for local delivery)
-    volumes:
-      - postfix_data:/var/lib/postfix
-      - postfix_queue:/var/spool/postfix
+      - POSTFIX_myhostname=vantage.local
     networks:
-      - gophish-net
-    healthcheck:
-      test: ["CMD", "postfix", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - vantage-net
 
-  # Reverse proxy with TLS termination and basic auth
   caddy:
     image: caddy:latest
-    container_name: gophish-caddy
+    container_name: vantage-proxy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      DOMAIN: "${DOMAIN:-localhost}"
-      VANTAGE_PASSWORD_HASH: "${VANTAGE_PASSWORD_HASH}"
+      - "8080:8080" # Secure Admin Access
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      vantage-app:
-        condition: service_healthy
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - vantage-certs:/data
+      - vantage-config:/config
     networks:
-      - gophish-net
-    cap_add:
-      - NET_BIND_SERVICE
-
-  # Optional: Tailscale VPN integration for internal network scanning
-  # Uncomment and configure to use Tailscale for VPN-based scanning
-  # tailscale:
-  #   image: tailscale/tailscale:latest
-  #   container_name: gophish-tailscale
-  #   restart: unless-stopped
-  #   volumes:
-  #     - tailscale_data:/var/lib/tailscale
-  #     - /dev/net/tun:/dev/net/tun
-  #   cap_add:
-  #     - NET_ADMIN
-  #     - SYS_MODULE
-  #   environment:
-  #     TS_AUTHKEY: "${TAILSCALE_AUTH_KEY}"
-  #   networks:
-  #     - gophish-net
+      - vantage-net
+    depends_on:
+      - vantage-core
 
 networks:
-  gophish-net:
+  vantage-net:
     driver: bridge
-    # For VPN support with host network (uncomment if using Tailscale/WireGuard):
-    # driver: bridge
-    # driver_opts:
-    #   com.docker.network.driver.mtu: 1500
 
 volumes:
-  gophish_data:
-  postfix_data:
-  postfix_queue:
-  caddy_data:
-  caddy_config:
-  # tailscale_data:
+  vantage-certs:
+  vantage-config:

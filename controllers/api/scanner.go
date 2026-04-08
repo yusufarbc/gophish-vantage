@@ -2,12 +2,17 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/gophish/gophish/config"
 	ctx "github.com/gophish/gophish/context"
+	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/notifier"
+	"github.com/gophish/gophish/reporting"
 	"github.com/gophish/gophish/scanner"
 	"github.com/gorilla/mux"
 )
@@ -93,7 +98,7 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mode := req.Tool
+	mode = req.Tool
 	if req.DiscoveryMode {
 		mode = "discovery (subfinder → httpx → nuclei)"
 	} else if len(req.EnabledTools) > 0 {
@@ -106,9 +111,26 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 		Mode:    mode,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(response)
+}
+
+// ── POST /api/scanner/stop/:id ──────────────────────────────────────────────
+
+// StopScanHandler terminates an active scan.
+func (as *Server) StopScanHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	id64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "invalid scan id"}, http.StatusBadRequest)
+		return
+	}
+
+	if err := scanner.StopScan(uint(id64)); err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusNotFound)
+		return
+	}
+
+	JSONResponse(w, models.Response{Success: true, Message: "scan termination signal sent"}, http.StatusOK)
 }
 
 // ── GET /api/scanner/status ──────────────────────────────────────────────────
@@ -200,4 +222,56 @@ func (as *Server) ListTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	JSONResponse(w, tasks, http.StatusOK)
+}
+
+// DownloadScanReport generates a PDF report for a scan and streams it to the client.
+// GET /api/v1/scanner/report/{id}
+func (as *Server) DownloadScanReport(w http.ResponseWriter, r *http.Request) {
+	uid := ctx.Get(r, "user_id").(int64)
+	idStr := mux.Vars(r)["id"]
+	id64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "invalid scan id"}, http.StatusBadRequest)
+		return
+	}
+
+	reportBytes, err := reporting.GenerateScanReport(uint(id64), uid)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "failed to generate report: " + err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=vantage_report_%d.pdf", id64))
+	w.Header().Set("Content-Length", strconv.Itoa(len(reportBytes)))
+	w.Write(reportBytes)
+}
+
+// GetNotificationSettings returns the current notification configuration.
+// GET /api/v1/settings/notifications
+func (as *Server) GetNotificationSettings(w http.ResponseWriter, r *http.Request) {
+	// Need to access the global config
+	// Since we don't have a direct reference to config.Config here, we retrieve it from the models package or a global.
+	// However, gophish's config is loaded in gophish.go.
+	// For now, we'll return the state from the notifier package if it's initialized.
+	JSONResponse(w, config.GetConfig().Notifications, http.StatusOK)
+}
+
+// PostNotificationSettings updates the notification configuration.
+// POST /api/v1/settings/notifications
+func (as *Server) PostNotificationSettings(w http.ResponseWriter, r *http.Request) {
+	var req config.NotificationConfig
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	c := config.GetConfig()
+	c.Notifications = &req
+	
+	// Update the notifier package state
+	notifier.Setup(c.Notifications)
+	
+	log.Infof("Notification settings updated by user")
+	JSONResponse(w, models.Response{Success: true, Message: "notification settings updated"}, http.StatusOK)
 }
