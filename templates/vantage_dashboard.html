@@ -1,243 +1,27 @@
-﻿{{define "vantage_dashboard"}}
-<!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vantage | Security Operations Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        vantage: {
-                            bg: '#0b0f12',
-                            sidebar: '#11161a',
-                            card: '#151c22',
-                            border: '#2a333c',
-                            accent: '#5ecf88',
-                            critical: '#bc8cf2',
-                            high: '#f85149',
-                            medium: '#d29922',
-                            low: '#8b949e',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['IBM Plex Sans', 'sans-serif'],
-                        mono: ['Roboto Mono', 'monospace'],
-                    },
-                    animation: {
-                        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        fadeIn: 'fadeIn 0.3s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(4px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #30363d #0a0c10;
-        }
-        *::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        *::-webkit-scrollbar-track {
-            background: #0a0c10;
-        }
-        *::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 4px;
-        }
-        *::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-
-        body {
-            background-color: #0b0f12;
-            color: #c9d1d9;
-            background-image: radial-gradient(circle at 8% 8%, rgba(94, 207, 136, 0.08) 0, transparent 34%), linear-gradient(180deg, #0b0f12 0%, #0a0d10 100%);
-        }
-        .sidebar-item-active { background-color: #5ecf8822; border-left: 3px solid #5ecf88; }
-        .badge-critical { background-color: #bc8cf220; color: #d498ff; }
-        .badge-high { background-color: #f8514920; color: #ff7b72; }
-        .badge-medium { background-color: #d2992220; color: #ffd500; }
-        .badge-low { background-color: #8b949e50; color: #8b949e; }
-        .terminal-line { font-family: 'Roboto Mono', monospace; animation: fadeIn 0.2s ease-out; }
-        .gradient-accent { background: linear-gradient(135deg, #5ecf88, #2f9e63); }
-        .glass-card {
-            background: linear-gradient(180deg, rgba(21, 28, 34, 0.97) 0%, rgba(17, 23, 28, 0.97) 100%);
-            border: 1px solid rgba(42, 51, 60, 0.85);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-        }
-        .panel-title {
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #7f8a95;
-            font-size: 0.73rem;
-            font-weight: 600;
-        }
-        .openvas-divider { border-color: rgba(94, 207, 136, 0.25); }
-        .menu-group-toggle {
-            transition: background-color 0.2s ease;
-        }
-        .menu-group-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.25s ease;
-        }
-        .menu-group.open .menu-group-content {
-            max-height: 280px;
-        }
-        .menu-group.open .group-chevron {
-            transform: rotate(90deg);
-        }
-        .group-chevron {
-            transition: transform 0.2s ease;
-        }
-        .sidebar-subitem-active {
-            background: rgba(94, 207, 136, 0.14);
-            color: #d7ffe5;
-        }
-    </style>
-</head>
-
-<body class="h-screen bg-vantage-bg text-gray-100 font-sans">
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-vantage-sidebar border-r border-vantage-border flex flex-col z-30 fixed h-screen">
-            <!-- Header -->
-            <div class="p-6 border-b border-vantage-border">
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-8 h-8 text-vantage-accent" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                    </svg>
-                    <h1 class="text-xl font-bold tracking-wide">VANTAGE</h1>
-                </div>
-                <p class="text-xs text-vantage-accent uppercase tracking-[0.2em] font-semibold">Vulnerability Center</p>
-            </div>
-
-            <!-- Navigation -->
-            <nav class="flex-1 overflow-y-auto py-3 space-y-1 text-[13px]">
-                <button onclick="switchTab('dashboard')" class="w-full sidebar-item flex items-center px-4 py-1 font-medium hover:bg-white/5 transition-colors" id="nav-dashboard">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 13h8V3H3v10zm10 8h8V11h-8v10zM3 21h8v-6H3v6zm10-10h8V3h-8v8z"/></svg>
-                    Dashboards
-                </button>
-
-                <div class="menu-group open" id="group-scans">
-                    <button onclick="toggleMenuGroup('group-scans')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
-                        <span class="flex items-center font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l9 4.5v5c0 5-3.5 8-9 8s-9-3-9-8v-5L12 3z"/></svg>
-                            Scans
-                        </span>
-                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                    <div class="menu-group-content pl-8 pr-3 space-y-1">
-                        <button onclick="switchTab('tasks')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-tasks">Tasks</button>
-                        <button onclick="switchTab('reports')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-reports">Reports</button>
-                        <button onclick="switchTab('results')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-results">Results</button>
-                        <button onclick="switchTab('vulnerabilities')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-vulnerabilities">Vulnerabilities</button>
-                    </div>
-                </div>
-
-                <div class="menu-group open" id="group-assets">
-                    <button onclick="toggleMenuGroup('group-assets')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
-                        <span class="flex items-center font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16v12H4zM9 18v-2m6 2v-2"/></svg>
-                            Assets
-                        </span>
-                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                    <div class="menu-group-content pl-8 pr-3 space-y-1">
-                        <button onclick="switchTab('hosts')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-hosts">Hosts</button>
-                        <button onclick="switchTab('operating-systems')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-operating-systems">Operating Systems</button>
-                    </div>
-                </div>
-
-                <div class="menu-group open" id="group-resilience">
-                    <button onclick="toggleMenuGroup('group-resilience')" class="menu-group-toggle w-full flex items-center justify-between px-4 py-1 rounded hover:bg-white/5">
-                        <span class="flex items-center font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/></svg>
-                            Resilience
-                        </span>
-                        <svg class="group-chevron w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                    <div class="menu-group-content pl-8 pr-3 space-y-1">
-                        <button onclick="switchTab('campaigns')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-campaigns">Campaigns</button>
-                        <button onclick="switchTab('stress-tests')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-stress-tests">Stress Tests</button>
-                        <button onclick="switchTab('resilience-admin')" class="w-full text-left py-1 px-2 rounded hover:bg-white/5 sidebar-subitem" id="nav-resilience-admin">Administration</button>
-                    </div>
-                </div>
-
-                <!-- Vantage Agent Status Badge -->
-                <div class="px-4 pt-3 mt-3 border-t border-vantage-border">
-                    <div id="agent-badge" class="flex items-center gap-2 px-2 py-1 rounded bg-vantage-card border border-vantage-border">
-                        <span id="agent-dot" class="w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500"></span>
-                        <p id="agent-label" class="text-[12px] text-gray-500">Agent: Disconnected</p>
-                    </div>
-                    <p id="agent-ip" class="text-[11px] font-mono text-gray-600 mt-1 truncate"></p>
-                </div>
-            </nav>
-
-            <!-- Footer -->
-            <div class="p-6 border-t border-vantage-border text-xs text-gray-500">
-                <p>Vantage v2.0</p>
-                <p>Vantage Engine + ProjectDiscovery</p>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 ml-64 flex flex-col overflow-hidden">
-            <!-- Top Header Bar -->
-            <header class="h-16 bg-black/20 border-b border-vantage-border px-8 flex items-center justify-between z-20">
-                <div class="flex items-center gap-4">
-                    <h2 class="text-lg font-semibold tracking-wide" id="tab-title">Dashboard</h2>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-700/40">Sensor Online</span>
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-vantage-accent to-blue-600 flex items-center justify-center text-sm font-bold">A</div>
-                </div>
-            </header>
-
-            <!-- Tab Content -->
-            <div class="flex-1 overflow-auto">
+{{define "body"}}
+    <div id="vantage-app" class="animate-fadeIn">
                 <!-- Dashboard Tab -->
                 <div id="tab-dashboard" class="tab-content p-8 space-y-6">
                     <div class="grid grid-cols-4 gap-4">
                         <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Total Vulnerabilities</p>
+                            <p class="panel-title mb-2">Toplam Zafiyet</p>
                             <p class="text-3xl font-bold text-vantage-accent" id="stat-total">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Scope: Internal + External</p>
+                            <p class="text-xs text-gray-500 mt-2">Kapsam: Dahili + Harici</p>
                         </div>
                         <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Critical Risk</p>
+                            <p class="panel-title mb-2">Kritik Risk</p>
                             <p class="text-3xl font-bold" id="stat-critical" style="color: #d498ff;">0</p>
                             <p class="text-xs text-gray-500 mt-2">CVSS 9.0 - 10.0</p>
                         </div>
                         <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Running Tasks</p>
+                            <p class="panel-title mb-2">Aktif Taramalar</p>
                             <p class="text-3xl font-bold text-blue-400" id="stat-scans">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Discovery / Validation</p>
+                            <p class="text-xs text-gray-500 mt-2">Keşif / Doğrulama</p>
                         </div>
                         <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Campaign Objects</p>
+                            <p class="panel-title mb-2">Kampanya Sayısı</p>
                             <p class="text-3xl font-bold text-yellow-400" id="stat-campaigns">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Linked awareness ops</p>
+                            <p class="text-xs text-gray-500 mt-2">Bağlı farkındalık operasyonları</p>
                         </div>
                     </div>
 
@@ -597,13 +381,33 @@
 
                             <!-- Vantage Agent -->
                             <div class="p-4 bg-black/30 rounded border border-vantage-border">
-                                <h4 class="font-semibold mb-2">Vantage Agent Status</h4>
-                                <p class="text-sm text-gray-400">Current status of the L3 reverse tunnel engine.</p>
+                                <h4 class="font-semibold mb-2">Vantage Agent Durumu</h4>
+                                <p class="text-sm text-gray-400">L3 ters tünel motorunun mevcut durumu.</p>
                                 <div class="mt-2 flex items-center gap-2">
                                     <div id="admin-agent-dot" class="w-2 h-2 rounded-full bg-gray-600"></div>
-                                    <span id="admin-agent-label" class="text-sm text-gray-500 uppercase font-mono">Inactive</span>
+                                    <span id="admin-agent-label" class="text-sm text-gray-500 uppercase font-mono">Pasif</span>
                                 </div>
                             </div>
+
+                            <!-- Vantage System Admin -->
+                            {{if .ModifySystem}}
+                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <h4 class="font-semibold">Sistem Yönetimi</h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button onclick="window.location.href='/users'" class="flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/40 text-blue-300 py-3 rounded-lg text-sm font-semibold transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                        Kullanıcı Yönetimi
+                                    </button>
+                                    <button onclick="window.location.href='/webhooks'" class="flex items-center justify-center gap-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/40 text-purple-300 py-3 rounded-lg text-sm font-semibold transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                        Webhook Yönetimi
+                                    </button>
+                                </div>
+                            </div>
+                            {{end}}
                         </div>
                     </div>
                 </div>
@@ -622,7 +426,9 @@
             </div>
         </main>
     </div>
+{{end}}
 
+{{define "scripts"}}
     <script>
         // â”€â”€ Tab Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1141,8 +947,17 @@
         async function initDashboard() {
             try {
                 const stats = await fetch('/api/scanner/stats').then(r => r.json());
-                document.getElementById('stat-total').textContent = stats.total || 'N/A';
+                document.getElementById('stat-total').textContent = stats.total || '0';
                 document.getElementById('stat-critical').textContent = stats.critical || '0';
+
+                // Fetch Vantage campaign count
+                const campaigns = await fetch('/api/campaigns/').then(r => r.json());
+                document.getElementById('stat-campaigns').textContent = (campaigns || []).length;
+
+                // Fetch scanner task stats
+                const tasks = await fetch('/api/scanner/tasks').then(r => r.json());
+                const running = (tasks || []).filter(t => (t.status || '').toLowerCase() === 'running').length;
+                document.getElementById('stat-scans').textContent = running;
 
                 const mail = await fetch('/api/v1/mail/queue').then(r => r.json());
                 document.getElementById('mail-sent').textContent = mail.sent || 0;
@@ -1187,15 +1002,16 @@
                                 <h4 class="font-semibold text-lg">${c.name}</h4>
                                 <p class="text-sm text-gray-500">${c.status}</p>
                             </div>
+                            <button onclick="window.location.href='/campaigns/${c.id}'" class="bg-vantage-accent/20 hover:bg-vantage-accent/40 text-vantage-accent px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Görüntüle</button>
                         </div>
                         <div class="grid grid-cols-4 gap-4 text-sm">
-                            <div><p class="text-gray-500 text-xs">Sent</p><p class="font-bold">${c.total_targets || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Opened</p><p class="font-bold text-green-400">${c.emails_opened || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Clicked</p><p class="font-bold text-yellow-400">${c.links_clicked || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Submitted</p><p class="font-bold text-red-400">${c.data_submitted || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Gönderildi</p><p class="font-bold">${c.total_targets || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Açıldı</p><p class="font-bold text-green-400">${c.emails_opened || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Tıklandı</p><p class="font-bold text-yellow-400">${c.links_clicked || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Veri Gönderildi</p><p class="font-bold text-red-400">${c.data_submitted || 0}</p></div>
                         </div>
                     </div>
-                `).join('') || '<p class="text-gray-500 text-center py-8">No campaigns</p>';
+                `).join('') || '<p class="text-gray-500 text-center py-8">Hiç kampanya bulunamadı.</p>';
             } catch (e) {
                 console.error('Load campaigns error:', e);
             }
@@ -1216,16 +1032,95 @@
             return fetch(path, options);
         }
 
+        // Use URL params for tab switching if present
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab) {
+                switchTab(tab);
+            }
+        });
+
+        async function deleteTask(id) {
+            if (!confirm('Bu tarama görevini ve tüm bulgularını silmek istediğinize emin misiniz?')) return;
+            try {
+                const resp = await fetch(`/api/scanner/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-Token': csrf_token }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    loadTasks();
+                    showNotification('Görev başarıyla silindi', 'success');
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (err) {
+                showNotification('İşlem başarısız oldu', 'error');
+            }
+        }
+
+        async function downloadReport(id) {
+            window.location.href = `/api/v1/scanner/report/${id}`;
+        }
+
+        async function loadOSStats() {
+            try {
+                const findings = await fetch('/api/scanner/findings').then(r => r.json());
+                const osMap = {};
+                findings.forEach(f => {
+                    if (f.tool_name === 'httpx' && f.detail) {
+                        try {
+                            const detail = JSON.parse(f.detail);
+                            if (detail.technologies) {
+                                detail.technologies.forEach(tech => {
+                                    const lowerTech = tech.toLowerCase();
+                                    if (lowerTech.includes('windows') || lowerTech.includes('linux') || lowerTech.includes('ubuntu') || lowerTech.includes('centos')) {
+                                        osMap[tech] = (osMap[tech] || 0) + 1;
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                });
+
+                const tbody = document.getElementById('os-table');
+                if (Object.keys(osMap).length === 0) {
+                    tbody.innerHTML = '<p class="text-xs text-gray-500 italic">Mevcut bulgularda işletim sistemi izi bulunamadı.</p>';
+                    return;
+                }
+
+                tbody.innerHTML = `
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-400 uppercase border-b border-vantage-border">
+                            <tr>
+                                <th class="px-4 py-2">İşletim Sistemi / Teknoloji</th>
+                                <th class="px-4 py-2 text-right">Tespit Sayısı</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-vantage-border">
+                            ${Object.entries(osMap).map(([os, count]) => `
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-gray-200">${os}</td>
+                                    <td class="px-4 py-3 text-right text-vantage-accent">${count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                console.error('OS Stats failed:', err);
+            }
+        }
+
         // Initialize on page load
         window.addEventListener('load', () => {
             switchTab('dashboard');
-            // Start polling the agent/tunnel status every 5 seconds
             pollAgentStatus();
             agentPollInterval = setInterval(pollAgentStatus, 5000);
             setInterval(loadTasks, 7000);
             loadNotifyConfig();
         });
     </script>
-</body>
-</html>
 {{end}}
+

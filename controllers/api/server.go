@@ -95,6 +95,7 @@ func (as *Server) registerRoutes() {
 	router.HandleFunc("/scanner/findings", as.ClearFindings).Methods("DELETE")
 	router.HandleFunc("/scanner/stats", as.GetStats).Methods("GET")
 	router.HandleFunc("/scanner/tasks", as.ListTasks).Methods("GET")
+	router.HandleFunc("/scanner/tasks/{id:[0-9]+}", as.DeleteScanTask).Methods("DELETE")
 	router.HandleFunc("/scanner/stop/{id:[0-9]+}", as.StopScanHandler).Methods("POST")
 	router.HandleFunc("/scanner/stress/start", as.StartStressTest).Methods("POST")
 

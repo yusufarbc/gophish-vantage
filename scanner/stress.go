@@ -68,7 +68,12 @@ func RunStressTest(req StressRequest) error {
 	}
 
 	go func() {
-		defer scanState.ReleaseLock()
+		defer func() {
+			if r := recover(); r != nil {
+				emitLog(fmt.Sprintf("[FATAL] Stress test panic: %v", r))
+			}
+			scanState.ReleaseLock()
+		}()
 		emitLog(fmt.Sprintf("[RESILIENCE] ▶ Stress test started tool=%s target=%s duration=%s rate=%d iface=%s", tool, req.TargetURL, req.Duration, req.Rate, req.Interface))
 
 		ctx := context.Background()
@@ -171,9 +176,10 @@ func firstNumericToken(v string) string {
 }
 
 func buildStressCommand(ctx context.Context, tool string, req StressRequest) *exec.Cmd {
+	var cmd *exec.Cmd
 	switch tool {
 	case "bombardier":
-		return exec.CommandContext(ctx, "bombardier", "-d", req.Duration, "-r", strconv.Itoa(req.Rate), "-c", "32", req.TargetURL)
+		cmd = exec.CommandContext(ctx, "bombardier", "-d", req.Duration, "-r", strconv.Itoa(req.Rate), "-c", "32", req.TargetURL)
 	case "hey":
 		// Approximate by requests = rate * durationSeconds
 		durationSeconds := 60
@@ -181,10 +187,20 @@ func buildStressCommand(ctx context.Context, tool string, req StressRequest) *ex
 			durationSeconds = int(d.Seconds())
 		}
 		requests := req.Rate * durationSeconds
-		return exec.CommandContext(ctx, "hey", "-n", strconv.Itoa(requests), "-c", "32", req.TargetURL)
+		cmd = exec.CommandContext(ctx, "hey", "-n", strconv.Itoa(requests), "-c", "32", req.TargetURL)
 	default:
 		// vegeta wrapper through shell to keep attack/report pipeline simple.
-		cmd := fmt.Sprintf("echo 'GET %s' | vegeta attack -duration=%s -rate=%d | vegeta report", req.TargetURL, req.Duration, req.Rate)
-		return exec.CommandContext(ctx, "bash", "-lc", cmd)
+		bashCmd := fmt.Sprintf("echo 'GET %s' | vegeta attack -duration=%s -rate=%d | vegeta report", req.TargetURL, req.Duration, req.Rate)
+		cmd = exec.CommandContext(ctx, "bash", "-lc", bashCmd)
 	}
+
+	if cmd != nil {
+		path, err := exec.LookPath(cmd.Args[0])
+		if err != nil {
+			emitLog(fmt.Sprintf("[ERROR] stress tool not found in PATH: %s", cmd.Args[0]))
+			return nil
+		}
+		cmd.Path = path
+	}
+	return cmd
 }

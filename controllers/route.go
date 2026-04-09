@@ -205,10 +205,7 @@ func newTemplateParams(r *http.Request) templateParams {
 func (as *AdminServer) Base(w http.ResponseWriter, r *http.Request) {
 	// Render the new Vantage Tailwind dashboard
 	w.Header().Set("Content-Type", "text/html")
-	params := map[string]interface{}{
-		"Token": csrf.Token(r),
-		"User":  ctx.Get(r, "user"),
-	}
+	params := newTemplateParams(r)
 	getTemplate(w, "vantage_dashboard").ExecuteTemplate(w, "vantage_dashboard", params)
 }
 

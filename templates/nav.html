@@ -1,47 +1,97 @@
 {{define "nav"}}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-3 col-md-2 sidebar">
-            <ul class="nav nav-sidebar">
-                <li>
-                    <a href="/">Dashboard</a>
-                </li>
-                <li>
-                    <a href="/campaigns">Campaigns</a>
-                </li>
-                <li>
-                    <a href="/groups">Users &amp; Groups</a>
-                </li>
-                <li> <a href="/templates">Email Templates</a>
-                </li>
-                <li>
-                    <a href="/landing_pages">Landing Pages</a>
-                </li>
-                <li>
-                    <a href="/sending_profiles">Sending Profiles</a>
-                </li>
-                <li>
-                    <a href="/settings">Account Settings</span></a>
-                </li>
-                {{if .ModifySystem}}
-                <li>
-                    <a href="/users">User Management<span class="nav-badge badge pull-right">Admin</span></a>
-                </li>
-                <li>
-                    <a href="/webhooks">Webhooks<span class="nav-badge badge pull-right">Admin</span></a>
-                </li>
-                {{end}}
-                <li>
-                    <hr>
-                </li>
-                <li>
-                    <a href="#">Vantage User Guide</a>
-                </li>
-                <li>
-                    <a href="#">Vantage API Reference</a>
-                </li>
-            </ul>
+<aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-vantage-sidebar border-r border-vantage-border flex flex-col z-30 transition-transform duration-300 lg:translate-x-0 -translate-x-full">
+    <!-- Brand Header -->
+    <div class="h-16 flex items-center px-6 border-b border-vantage-border shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-vantage-accent flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="text-xl font-bold tracking-tight text-white italic">VANTAGE</span>
         </div>
     </div>
-</div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-4">
+        <!-- Dashboard & Scans -->
+        <div class="menu-group open" id="group-core">
+            <button onclick="window.location.href='/'" class="w-full text-left py-2 px-4 rounded hover:bg-white/5 flex items-center gap-3 text-white font-medium transition-colors">
+                <svg class="w-4 h-4 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Yönetim Paneli
+            </button>
+            
+            <div class="mt-4 px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Güvenlik Taramaları</div>
+            <div class="space-y-1">
+                <button onclick="window.location.href='/?tab=tasks'" class="w-full text-left py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 flex items-center gap-3">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    Görevler
+                </button>
+                <button onclick="window.location.href='/?tab=results'" class="w-full text-left py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 flex items-center gap-3">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Bulgular & Zafiyetler
+                </button>
+            </div>
+        </div>
+
+        <!-- Phishing Group -->
+        <div class="menu-group open" id="group-phish">
+            <div class="px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Oltalama Simülasyonu</div>
+            <div class="space-y-1 mt-1">
+                <a href="/campaigns" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    Kampanyalar
+                </a>
+                <a href="/groups" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Kullanıcılar & Gruplar
+                </a>
+                <a href="/templates" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    E-posta Şablonları
+                </a>
+                <a href="/landing_pages" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    Açılış Sayfaları
+                </a>
+                <a href="/sending_profiles" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Gönderme Profilleri
+                </a>
+            </div>
+        </div>
+
+        <!-- Resilience Group -->
+        <div class="menu-group open" id="group-resilience">
+            <div class="px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Altyapı Dayanıklılığı</div>
+            <div class="space-y-1 mt-1">
+                <button onclick="window.location.href='/?tab=stress-tests'" class="w-full text-left py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 flex items-center gap-3">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Stres Testleri
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Group -->
+        {{if .ModifySystem}}
+        <div class="menu-group open" id="group-admin">
+            <div class="px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sistem Yönetimi</div>
+            <div class="space-y-1 mt-1">
+                <a href="/users" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Kullanıcı Yönetimi
+                </a>
+                <a href="/webhooks" class="flex items-center gap-3 py-1.5 px-4 rounded hover:bg-white/5 text-sm text-gray-300 transition-colors">
+                    <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    Webhook Yönetimi
+                </a>
+            </div>
+        </div>
+        {{end}}
+    </nav>
+
+    <!-- Footer -->
+    <div class="p-6 border-t border-vantage-border text-[10px] text-gray-600 font-mono tracking-tighter">
+        <p>VANTAGE HUB v2.0</p>
+        <p class="opacity-50">ENGINE: PROJECTDISCOVERY</p>
+    </div>
+</aside>
 {{end}}

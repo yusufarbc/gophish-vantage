@@ -1,48 +1,75 @@
+# ═════════════════════════════════════════════════════════════════════════════
+# Caddy Reverse Proxy Configuration for Vantage
+# Handles: TLS termination, Basic Auth, WebSocket, Rate limiting, Security headers
+# ═════════════════════════════════════════════════════════════════════════════
+
 {
-    # Global HTTP Configuration
-    email info@vantage.local
-    admin off
+    # Global configuration
+    email admin@vantage.local
+    admin 0.0.0.0:2019
+    
+    # Log configuration
+    log {
+        level info
+        format json
+    }
+
+    # Auto-HTTPS settings
+    auto_https on
+    default_sni localhost
 }
 
-# Vantage Admin Reverse Proxy
-(vantage_security) {
-    header {
-        # Strict-Transport-Security: 31536000; includeSubDomains; preload
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        
-        # X-Content-Type-Options: nosniff
-        X-Content-Type-Options nosniff
-        
-        # X-Frame-Options: SAMEORIGIN
-        X-Frame-Options DENY
-        
-        # X-XSS-Protection: 1; mode=block
-        X-XSS-Protection "1; mode=block"
+# ═════════════════════════════════════════════════════════════════════════════
+# Security Middleware Snippet
+# ═════════════════════════════════════════════════════════════════════════════
 
-        # Content-Security-Policy
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss:;"
-        
-        # Referrer-Policy
-        Referrer-Policy "strict-origin-when-cross-origin"
+(security_headers) {
+    # Prevent clickjacking
+    header X-Frame-Options "DENY"
+    
+    # Prevent MIME sniffing
+    header X-Content-Type-Options "nosniff"
+    
+    # XSS protection
+    header X-XSS-Protection "1; mode=block"
+    
+    # Referrer policy
+    header Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content Security Policy (permissive for Vantage)
+    header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ws: wss:;"
+    
+    # HSTS (preload optional, requires domain registration)
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Permissions Policy (formerly Feature Policy)
+    header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+}
+
+(basic_auth) {
+    # Basic authentication
+    # Generate password hash: caddy hash-password -plaintext "password"
+    basicauth /* {
+        # admin JDJhJDEwJFZWWTFFUnhCWGQ3TUl0RWxkblMzT21DT0ljRDkuWmZGSWJnRUFha05LMUJBdW1CMnVRb2N1
     }
 }
+
+# ═════════════════════════════════════════════════════════════════════════════
+# DEVELOPMENT: Local HTTP Server (No TLS, No Auth)
+# ═════════════════════════════════════════════════════════════════════════════
 
 :8080 {
-    import vantage_security
+    import security_headers
     
-    # WebSocket Tunneling for Live Logs
-    handle /ws/* {
-        reverse_proxy vantage-core:3333
-    }
-    
-    # Reverse Tunnel Management
-    handle /api/v1/tunnel/* {
-        reverse_proxy vantage-core:9090
-    }
-    
-    # General App Traffic
-    handle {
-        reverse_proxy vantage-core:3333
+    # Main reverse proxy handler
+    reverse_proxy vantage-core:3333 {
+        # Preserve original request information
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        # WebSocket support (must be after headers)
+        websocket
     }
     
     # Compression
@@ -50,6 +77,107 @@
     
     # Logging
     log {
-        output file /var/log/caddy/vantage_access.log
+        output file /var/log/caddy/vantage-dev.log {
+            roll_size 10mb
+            roll_keep 3
+        }
+        format json
     }
 }
+
+# ═════════════════════════════════════════════════════════════════════════════
+# PRODUCTION: HTTPS with TLS and Basic Auth
+# Replace {$DOMAIN} with actual domain (e.g., vantage.example.com)
+# ═════════════════════════════════════════════════════════════════════════════
+
+# localhost:8443 {
+#     import security_headers
+#     # import basic_auth
+#     
+#     tls self_signed
+#     
+#     reverse_proxy vantage-core:3333 {
+#         header_up X-Forwarded-For {remote_host}
+#         header_up X-Forwarded-Proto https
+#         header_up X-Forwarded-Host {host}
+#         websocket
+#     }
+#     
+#     encode gzip
+#     
+#     log {
+#         output file /var/log/caddy/vantage-prod.log {
+#             roll_size 50mb
+#             roll_keep 5
+#         }
+#         format json
+#     }
+# }
+
+# ═════════════════════════════════════════════════════════════════════════════
+# API Endpoint with Rate Limiting
+# ═════════════════════════════════════════════════════════════════════════════
+
+# api.{$DOMAIN:localhost}:8443 {
+#     import security_headers
+#     # import basic_auth
+#     
+#     tls self_signed
+#     
+#     # Rate limiting middleware
+#     @api path /api/*
+#     
+#     route @api {
+#         rate_limit 100 1m {
+#             zone static/ip {remote_host}
+#         }
+#         
+#         reverse_proxy vantage-core:3333 {
+#             header_up X-Forwarded-For {remote_host}
+#             header_up X-Forwarded-Proto https
+#             
+#             # Timeouts
+#             transport http {
+#                 dial_timeout 30s
+#                 response_header_timeout 60s
+#                 expect_continue_timeout 2s
+#             }
+#         }
+#     }
+#     
+#     log {
+#         output file /var/log/caddy/api-access.log
+#         format json
+#     }
+# }
+
+# ═════════════════════════════════════════════════════════════════════════════
+# DEPLOYMENT INSTRUCTIONS
+# ═════════════════════════════════════════════════════════════════════════════
+
+# 1. For Development (HTTP):
+#    - Keep the ":8080" block active (currently active)
+#    - Access: http://localhost:8080
+#    - In docker-compose.yml: ports: ["8080:8080"]
+#
+# 2. For Production (HTTPS):
+#    - Edit this file, replace {$DOMAIN} with your domain (e.g., vantage.example.com)
+#    - Uncomment the production blocks
+#    - Generate password hash: 
+#      docker run caddy caddy hash-password -plaintext "your_secure_password"
+#    - Set environment variable: DOMAIN=vantage.example.com
+#    - Ensure DNS records point to your server
+#    - Let's Encrypt will auto-provision certificates
+#
+# 3. Generate Basic Auth Hash:
+#    docker run --rm -it caddy:latest caddy hash-password -plaintext "mypassword"
+#
+# 4. View Caddy Logs:
+#    docker-compose logs -f caddy
+#
+# 5. Reload Configuration Without Restart:
+#    docker-compose exec caddy caddy reload -c /etc/caddy/Caddyfile
+#
+# 6. Test Configuration:
+#    caddy validate --config /etc/caddy/Caddyfile
+

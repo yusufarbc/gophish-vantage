@@ -1,0 +1,56 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs
+dist/
+build/
+*.o
+*.so
+*.dylib
+
+# Dependencies
+node_modules/
+vendor/
+
+# Test files
+*_test.go
+coverage.out
+*.prof
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data
+vantage_data/
+*.db
+*.sqlite3
+
+# Temporary
+tmp/
+temp/
+.tmp/
+
+# Package files
+*.tar.gz
+*.zip

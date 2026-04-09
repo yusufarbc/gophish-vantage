@@ -1,7 +1,7 @@
 package main
 
 /*
-gophish - Open-Source Phishing Framework
+vantage - Advanced Phishing & Security Operations Hub
 
 The MIT License (MIT)
 
@@ -109,7 +109,7 @@ func main() {
 	}
 
 	// Unlock any maillogs that may have been locked for processing
-	// when Gophish was last shutdown.
+	// when Vantage was last shutdown.
 	err = models.UnlockAllMailLogs()
 	if err != nil {
 		log.Fatal(err)

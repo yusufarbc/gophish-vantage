@@ -1,56 +1,243 @@
 
+version: '3.8'
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# VANTAGE: Enterprise Security Operations Hub - Docker Compose Orchestration
+# Gophish + ProjectDiscovery Tools + Postfix + Caddy Reverse Proxy
+# ═════════════════════════════════════════════════════════════════════════════════
+
 services:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Core: Vantage Application (Gophish + Scanner Engine)
+  # ─────────────────────────────────────────────────────────────────────────────
   vantage-core:
-    build: .
-    container_name: vantage-core
-    restart: unless-stopped
-    ports:
-      - "3333:3333" # Admin UI
-      - "80:80"     # Phish Listener
-      - "443:443"   # Phish Listener TLS
-      - "9090:9090" # Chisel Server
-    volumes:
-      - ./data:/app/data
-      - ./reports:/app/reports
-      - ./config.json:/app/config.json
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vantage_core
+    restart: always
+    
+    # Linux Capabilities: CRITICAL for network operations
+    # NET_ADMIN: TUN/TAP for reverse tunneling (Chisel)
+    # NET_RAW: Raw packet access for port scanning (Naabu, httpx)
+    # SYS_PTRACE: Process debugging/monitoring (stress tests)
     cap_add:
       - NET_ADMIN
+      - NET_RAW
+      - SYS_PTRACE
+    
+    # Block unnecessary capabilities (security hardening)
+    cap_drop:
+      - ALL
+    
+    # Kernel networking device: Required for TUN/TAP tunneling
     devices:
       - /dev/net/tun:/dev/net/tun
-    environment:
-      - DB_NAME=sqlite3
-      - DB_PATH=/app/vantage.db
-    networks:
-      - vantage-net
-
-  postfix:
-    image: mwader/postfix-relay
-    container_name: vantage-postfix
-    restart: unless-stopped
-    environment:
-      - POSTFIX_myhostname=vantage.local
-    networks:
-      - vantage-net
-
-  caddy:
-    image: caddy:latest
-    container_name: vantage-proxy
-    restart: unless-stopped
+    
+    # Port mappings
     ports:
-      - "8080:8080" # Secure Admin Access
+      # Admin UI + Dashboard
+      - "3333:3333"
+      
+      # HTTP/HTTPS Phishing Redirectors
+      - "80:80"
+      - "443:443"
+      
+      # Chisel Reverse Tunnel Listener (agents connect here)
+      - "8080:8080"
+      
+      # Reverse TUN Server
+      - "9090:9090"
+    
+    # Persistent storage volumes
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - vantage-certs:/data
-      - vantage-config:/config
+      # Database persistence (SQLite)
+      - ./vantage_data:/opt/vantage/db
+      
+      # Nuclei templates caching (avoid re-downloading on restart)
+      - nuclei_templates:/root/.nuclei-templates
+      
+      # Nuclei configuration
+      - nuclei_config:/root/.config/nuclei
+      
+      # Optional: Custom config override
+      - ./config.json:/opt/vantage/config.json:ro
+    
+    # Environment configuration
+    environment:
+      # Database
+      - DB_TYPE=sqlite3
+      - DB_PATH=/opt/vantage/db/vantage.db
+      
+      # Gophish Admin
+      - GOPHISH_ADMIN_BIND=0.0.0.0:3333
+      - GOPHISH_ADMIN_TLS=false
+      
+      # SMTP Relay (Postfix)
+      - SMTP_HOST=postfix
+      - SMTP_PORT=25
+      
+      # Reverse Tunnel (Chisel)
+      - CHISEL_SERVER_PORT=8080
+      - CHISEL_TUN_PORT=9090
+      
+      # Logging
+      - LOG_LEVEL=info
+    
+    # Resource limits (prevent runaway resource usage)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+    
+    # Health check: Ensure service is responding
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3333/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Network configuration
     networks:
       - vantage-net
+    
+    depends_on:
+      postfix:
+        condition: service_started
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=vantage-core"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Mail: Postfix SMTP Relay (for Gophish phishing email delivery)
+  # ─────────────────────────────────────────────────────────────────────────────
+  postfix:
+    image: mwader/postfix-relay:latest
+    container_name: vantage_postfix
+    restart: always
+    
+    # Internal network only (no external ports needed)
+    networks:
+      - vantage-net
+    
+    environment:
+      # Postfix hostname
+      - POSTFIX_myhostname=vantage.local
+      
+      # Relayhost (optional: if using external SMTP)
+      # - POSTFIX_relayhost=[smtp.gmail.com]:587
+      # - POSTFIX_sasl_auth_enable=yes
+      # - POSTFIX_sasl_password_maps=hash:/etc/postfix/sasl_passwd
+      
+      # Allow vantage-core to relay
+      - POSTFIX_mynetworks=172.20.0.0/16
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    
+    healthcheck:
+      test: ["CMD", "postfix", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "service=postfix"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Proxy: Caddy Reverse Proxy (TLS termination + Basic Auth)
+  # ─────────────────────────────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2.7-alpine
+    container_name: vantage_caddy
+    restart: always
+    
+    ports:
+      # HTTPS Secure Access
+      - "8443:443"
+    
+    volumes:
+      # Caddy configuration
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      
+      # TLS certificates persistence
+      - caddy_data:/data
+      - caddy_config:/config
+    
+    networks:
+      - vantage-net
+    
+    environment:
+      - CADDY_ADMIN=0.0.0.0:2019
+    
     depends_on:
       - vantage-core
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2019/config/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "service=caddy"
 
+# ═════════════════════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═════════════════════════════════════════════════════════════════════════════════
 networks:
   vantage-net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
+# ═════════════════════════════════════════════════════════════════════════════════
+# VOLUMES
+# ═════════════════════════════════════════════════════════════════════════════════
 volumes:
-  vantage-certs:
-  vantage-config:
+  # Persistent application data
+  vantage_data:
+    driver: local
+
+  # Nuclei templates (downloaded on first run, cached thereafter)
+  nuclei_templates:
+    driver: local
+
+  # Nuclei configuration
+  nuclei_config:
+    driver: local
+
+  # Caddy certificates (Let's Encrypt auto-renewal)
+  caddy_data:
+    driver: local
+
+  # Caddy configuration
+  caddy_config:
+    driver: local

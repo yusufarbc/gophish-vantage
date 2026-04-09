@@ -1,7 +1,6 @@
 {{ define "base" }}
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="dark scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,65 +9,132 @@
     <meta name="author" content="Vantage Security">
     <link rel="shortcut icon" href="/images/favicon.png">
 
-    <title>{{ .Title }} - Vantage Security Hub</title>
+    <title>Vantage | {{ .Title }}</title>
 
+    <!-- UI Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!-- Legacy Support (Bootstrap fallback) -->
     <link href="/css/dist/vantage.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Roboto:700,500' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700' rel='stylesheet' type='text/css'>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        vantage: {
+                            bg: '#0b0f12',
+                            sidebar: '#11161a',
+                            card: '#151c22',
+                            border: '#2a333c',
+                            accent: '#5ecf88',
+                            critical: '#bc8cf2',
+                            high: '#f85149',
+                            medium: '#d29922',
+                            low: '#8b949e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0f12;
+            color: #c9d1d9;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-image: radial-gradient(circle at 8% 8%, rgba(94, 207, 136, 0.05) 0, transparent 34%), linear-gradient(180deg, #0b0f12 0%, #0a0d10 100%);
+            min-height: 100vh;
+        }
+        /* Override Legacy Styles */
+        .navbar { display: none !important; }
+        .sidebar { background: #11161a !important; border: none !important; }
+        .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+        
+        /* Vantage Styled Components for Legacy Pages */
+        .btn-primary { background-color: #5ecf88 !important; border: none !important; color: #0b0f12 !important; font-weight: 600 !important; padding: 0.5rem 1.25rem !important; border-radius: 0.375rem !important; }
+        .btn-primary:hover { background-color: #4ebf78 !important; }
+        .label { border-radius: 4px !important; padding: 0.2rem 0.5rem !important; }
+        .label-success { background-color: #5ecf8820 !important; color: #5ecf88 !important; border: 1px solid #5ecf8840 !important; }
+        
+        .table { background: rgba(0,0,0,0.1) !important; border-collapse: separate !important; border-spacing: 0 !important; border: 1px solid #2a333c !important; border-radius: 0.5rem !important; overflow: hidden !important; }
+        .table thead th { border-bottom: 2px solid #2a333c !important; color: #7f8a95 !important; text-transform: uppercase; font-size: 0.7rem !important; letter-spacing: 0.05em !important; padding: 1rem !important; font-weight: 600 !important; }
+        .table td { border-top: 1px solid #2a333c !important; color: #c9d1d9 !important; padding: 0.75rem 1rem !important; background: transparent !important; }
+        .table tr:hover td { background: rgba(255,255,255,0.02) !important; }
+        
+        .modal-content { background: #151c22 !important; border: 1px solid #2a333c !important; color: #c9d1d9 !important; border-radius: 0.75rem !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; }
+        .modal-header { border-bottom: 1px solid #2a333c !important; }
+        .modal-footer { border-top: 1px solid #2a333c !important; }
+        .form-control { background: #0b0f12 !important; border: 1px solid #2a333c !important; color: #fff !important; }
+        .form-control:focus { border-color: #5ecf88 !important; box-shadow: 0 0 0 2px rgba(94, 207, 136, 0.2) !important; }
+        
+        .panel { background: #151c22 !important; border: 1px solid #2a333c !important; border-radius: 0.75rem !important; }
+        .panel-heading { background: rgba(255,255,255,0.03) !important; border-bottom: 1px solid #2a333c !important; color: #fff !important; font-weight: 600 !important; }
+    </style>
+
     <script>
         {{if .User}}
-    var user = {
-        api_key : {{ .User.ApiKey }},
-        username : {{ .User.Username }}
-    }
-    {{end}}
-    {{if .Token}}
-        var csrf_token = {{.Token}}
-    {{end}}
+        var user = {
+            api_key : "{{ .User.ApiKey }}",
+            username : "{{ .User.Username }}"
+        }
+        {{end}}
+        {{if .Token}}
+        var csrf_token = "{{.Token}}"
+        {{end}}
     </script>
 </head>
 
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                 <img class="navbar-logo" src="/images/vantage_logo_inv.png" />
-                <a class="navbar-brand" href="/">&nbsp;Vantage</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        {{if .User}}
-                        <div class="btn-group" id="navbar-dropdown">
-                            <a class="btn btn-primary" href="/settings"><i class="fa fa-user"></i> {{.User.Username}}</a>
-                            <a class="btn btn-primary dropdown-toggle" href="/logout">
-                                <i class="fa fa-sign-out"></i>
-                            </a>
+<body class="antialiased">
+    <div class="flex">
+        <!-- Unified Sidebar -->
+        {{template "nav" .}}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+            <!-- Global Header -->
+            <header class="h-16 bg-black/20 border-b border-vantage-border px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-lg font-semibold tracking-wide text-white uppercase">{{ .Title }}</h1>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sistem Aktif</span>
+                    </div>
+                    {{if .User}}
+                    <div class="flex items-center gap-3 pl-6 border-l border-vantage-border">
+                        <div class="flex flex-col items-end">
+                            <span class="text-xs font-semibold text-white">{{.User.Username}}</span>
+                            <span class="text-[10px] text-gray-500 font-mono">{{if .ModifySystem}}Yönetici{{else}}Kullanıcı{{end}}</span>
                         </div>
-                        {{else}}
-                        <a href="/login">
-                            <button type="button" class="btn btn-primary">Login</button>
+                        <a href="/logout" class="w-8 h-8 rounded-full bg-vantage-card border border-vantage-border flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white" title="Çıkış Yap">
+                            <i class="fa fa-sign-out"></i>
                         </a>
-                        {{end}}
-                    </li>
-                </ul>
-            </div>
+                    </div>
+                    {{end}}
+                </div>
+            </header>
+
+            <!-- Page Body -->
+            <main class="flex-1 p-8">
+                {{template "body" .}}
+            </main>
         </div>
     </div>
-    {{template "nav" .}}
-    {{template "body" .}}
-    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- Background Scripts -->
     <script src="/js/dist/vendor.min.js"></script>
     <script src="/js/dist/app/vantage.min.js"></script>
     {{template "scripts" .}}
 </body>
-
 </html>
 {{ end }}

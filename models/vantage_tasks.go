@@ -129,3 +129,16 @@ func UpdateScanTaskProgress(scanID uint, status string, progress int) error {
 		"progress": progress,
 	}).Error
 }
+
+func DeleteScanTask(uid int64, id uint) error {
+	tx := db.Begin()
+	if err := tx.Where("scan_id = ? AND user_id = ?", id, uid).Delete(&Finding{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Where("id = ? AND user_id = ?", id, uid).Delete(&Scan{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}

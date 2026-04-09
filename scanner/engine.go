@@ -36,11 +36,18 @@ var logHub *ScannerLogHub
 func InitScannerHub() {
 	logHub = &ScannerLogHub{
 		clients:    make(map[*websocket.Conn]bool),
-		broadcast:  make(chan string, 512),
+		broadcast:  make(chan string, 2048), // Increased buffer for high-volume logs
 		register:   make(chan *websocket.Conn),
 		unregister: make(chan *websocket.Conn),
 	}
-	go logHub.run()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[FATAL] ScannerLogHub panic: %v", r)
+			}
+		}()
+		logHub.run()
+	}()
 }
 
 // run is the main loop that distributes messages to all connected clients.
@@ -67,6 +74,7 @@ func (h *ScannerLogHub) run() {
 				if err := client.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
 					h.mu.RUnlock()
 					go func(c *websocket.Conn) {
+						defer func() { recover() }() // Silent recovery for unregister
 						h.unregister <- c
 					}(client)
 					h.mu.RLock()
@@ -88,7 +96,12 @@ func ScannerWSHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Keep connection alive by reading frames (not used, just prevent disconnect)
 	go func() {
-		defer func() { logHub.unregister <- conn }()
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[scanner] ws connection handler panic: %v", r)
+			}
+			logHub.unregister <- conn
+		}()
 		for {
 			if _, _, err := conn.ReadMessage(); err != nil {
 				return
@@ -411,7 +424,15 @@ func runAndStreamTool(ctx context.Context, userID int64, toolName, scanTarget, i
 	}
 
 	emitLog(fmt.Sprintf("[CMD] %s", strings.Join(args, " ")))
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
+	
+	// Tool discovery
+	toolPath, err := exec.LookPath(args[0])
+	if err != nil {
+		emitLog(fmt.Sprintf("[ERROR] tool not found in PATH: %s", args[0]))
+		return
+	}
+	
+	cmd := exec.CommandContext(ctx, toolPath, args[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -476,7 +497,15 @@ func collectTargets(ctx context.Context, userID int64, parseAs, scanTarget, ifac
 	}
 
 	emitLog(fmt.Sprintf("[CMD] %s", strings.Join(args, " ")))
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
+	
+	// Tool discovery
+	toolPath, err := exec.LookPath(args[0])
+	if err != nil {
+		emitLog(fmt.Sprintf("[ERROR] tool not found in PATH: %s", args[0]))
+		return targets
+	}
+	
+	cmd := exec.CommandContext(ctx, toolPath, args[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

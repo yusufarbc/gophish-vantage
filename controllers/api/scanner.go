@@ -275,3 +275,25 @@ func (as *Server) PostNotificationSettings(w http.ResponseWriter, r *http.Reques
 	log.Infof("Notification settings updated by user")
 	JSONResponse(w, models.Response{Success: true, Message: "notification settings updated"}, http.StatusOK)
 }
+
+// DeleteScanTask removes a scan task and its associated findings.
+// DELETE /api/scanner/tasks/:id
+func (as *Server) DeleteScanTask(w http.ResponseWriter, r *http.Request) {
+	uid := ctx.Get(r, "user_id").(int64)
+	idStr := mux.Vars(r)["id"]
+	id64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: "invalid task id"}, http.StatusBadRequest)
+		return
+	}
+
+	if err := models.DeleteScanTask(uid, uint(id64)); err != nil {
+		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	JSONResponse(w, models.Response{
+		Success: true,
+		Message: "task and associated findings deleted",
+	}, http.StatusOK)
+}
