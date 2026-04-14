@@ -1,13 +1,13 @@
 {
 	"admin_server": {
-		"listen_url": "127.0.0.1:3333",
+		"listen_url": "0.0.0.0:3333",
 		"use_tls": false,
 		"cert_path": "vantage_admin.crt",
 		"key_path": "vantage_admin.key",
 		"trusted_origins": []
 	},
 	"phish_server": {
-		"listen_url": "0.0.0.0:80",
+		"listen_url": "0.0.0.0:8080",
 		"use_tls": false,
 		"cert_path": "example.crt",
 		"key_path": "example.key"

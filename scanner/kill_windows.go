@@ -3,12 +3,17 @@
 
 package scanner
 
-import "fmt"
+import (
+	"log"
+	"os/exec"
+	"strconv"
+)
 
 func killProcessGroup(pid int) error {
-	// Windows doesn't support -pid for process groups in the same way via syscall.
-	// For now, in a Windows dev environment, we just log it or kill the single process.
-	// This resolves the linting errors.
-	fmt.Printf("[DEBUG] Windows process group kill requested for PID %d (Simulated)\n", pid)
+	killCmd := exec.Command("taskkill", "/T", "/F", "/PID", strconv.Itoa(pid))
+	if err := killCmd.Run(); err != nil {
+		log.Printf("[WARN] taskkill failed for PID %d: %v", pid, err)
+		return err
+	}
 	return nil
 }

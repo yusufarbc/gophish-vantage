@@ -38,36 +38,16 @@ log_error() {
 # Initialize Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 initialize_config() {
-    log_info "Initializing Vantage configuration..."
-    
-    # Use provided config.json or fallback to example
-    if [ ! -f "/opt/vantage/config.json" ]; then
-        if [ -f "/opt/vantage/config.json.example" ]; then
-            log_warn "config.json not found, using example"
-            cp /opt/vantage/config.json.example /opt/vantage/config.json
-        else
-            log_warn "No config files found, creating minimal config"
-            cat > /opt/vantage/config.json <<EOF
-{
-  "admin_server": {
-    "listen_url": "0.0.0.0:3333",
-    "use_tls": false
-  },
-  "phish_server": {
-    "listen_url": "0.0.0.0:80",
-    "use_tls": false
-  }
-}
-EOF
-        fi
-    fi
+# Prepare working config (handles read-only bind mounts)
+    VANTAGE_CONFIG_PATH="/tmp/config.json"
+    cp /opt/vantage/config.json "$VANTAGE_CONFIG_PATH"
     
     # Expand environment variables in config
-    sed -i "s|\${DB_PATH:-/opt/vantage/db/vantage.db}|${DB_PATH:-/opt/vantage/db/vantage.db}|g" /opt/vantage/config.json
-    sed -i "s|\${SMTP_HOST:-postfix}|${SMTP_HOST:-postfix}|g" /opt/vantage/config.json
-    sed -i "s|\${SMTP_PORT:-25}|${SMTP_PORT:-25}|g" /opt/vantage/config.json
+    sed -i "s|\${DB_PATH:-/opt/vantage/db/vantage.db}|${DB_PATH:-/opt/vantage/db/vantage.db}|g" "$VANTAGE_CONFIG_PATH"
+    sed -i "s|\${SMTP_HOST:-postfix}|${SMTP_HOST:-postfix}|g" "$VANTAGE_CONFIG_PATH"
+    sed -i "s|\${SMTP_PORT:-25}|${SMTP_PORT:-25}|g" "$VANTAGE_CONFIG_PATH"
     
-    log_success "Configuration initialized"
+    log_success "Configuration initialized (at $VANTAGE_CONFIG_PATH)"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -123,7 +103,7 @@ initialize_database() {
 initialize_nuclei() {
     log_info "Checking Nuclei templates..."
     
-    NUCLEI_TEMPLATES_DIR="/root/.nuclei-templates"
+    NUCLEI_TEMPLATES_DIR="/home/vantage/.nuclei-templates"
     mkdir -p "$NUCLEI_TEMPLATES_DIR"
     
     # Check if templates already cached
@@ -255,8 +235,8 @@ main() {
     # Setup signal handlers
     setup_signal_handlers
     
-    # Execute the command passed to entrypoint
-    exec "$@"
+    # Execute the command passed to entrypoint with the working config
+    exec "$@" --config "$VANTAGE_CONFIG_PATH"
 }
 
 # Run main

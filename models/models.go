@@ -15,11 +15,15 @@ import (
 	mysql "github.com/go-sql-driver/mysql"
 	"github.com/gophish/gophish/auth"
 	"github.com/gophish/gophish/config"
-
 	log "github.com/gophish/gophish/logger"
 	"github.com/jinzhu/gorm"
-	_ "github.com/mattn/go-sqlite3" // Blank import needed to import sqlite3
+	"modernc.org/sqlite"
+	"database/sql"
 )
+
+func init() {
+	sql.Register("sqlite3", &sqlite.Driver{})
+}
 
 var db *gorm.DB
 var conf *config.Config
@@ -89,9 +93,9 @@ func chooseDBDriver(name, openStr string) goose.DBDriver {
 		d.Import = "github.com/go-sql-driver/mysql"
 		d.Dialect = &goose.MySqlDialect{}
 
-	// Default database is sqlite3
+	// Default database is sqlite (modernc.org/sqlite)
 	default:
-		d.Import = "github.com/mattn/go-sqlite3"
+		d.Import = "modernc.org/sqlite"
 		d.Dialect = &goose.Sqlite3Dialect{}
 	}
 
@@ -172,7 +176,8 @@ func Setup(c *config.Config) error {
 	// Open our database connection
 	i := 0
 	for {
-		db, err = gorm.Open(conf.DBName, conf.DBPath)
+		driverName := conf.DBName
+		db, err = gorm.Open(driverName, conf.DBPath)
 		if err == nil {
 			break
 		}
@@ -192,7 +197,9 @@ func Setup(c *config.Config) error {
 		db.DB().SetMaxOpenConns(1)
 		db.Exec("PRAGMA journal_mode=WAL;")
 		db.Exec("PRAGMA synchronous=NORMAL;")
-		db.Exec("PRAGMA busy_timeout=5000;")
+		db.Exec("PRAGMA busy_timeout=10000;")
+		db.Exec("PRAGMA cache_size=-64000;") // 64MB cache
+		db.Exec("PRAGMA temp_store=MEMORY;")
 	} else {
 		db.DB().SetMaxOpenConns(25)
 		db.DB().SetMaxIdleConns(5)

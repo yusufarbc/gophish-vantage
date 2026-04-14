@@ -6,10 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"runtime"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -65,21 +62,9 @@ func KillProcessTree(cmd *exec.Cmd) {
 		return
 	}
 
-	if runtime.GOOS == "windows" {
-		killCmd := exec.Command("taskkill", "/T", "/F", "/PID", strconv.Itoa(cmd.Process.Pid))
-		if err := killCmd.Run(); err != nil {
-			log.Printf("[WARN] Failed to kill process tree: %v\n", err)
-		}
-		return
-	}
-
-	// Unix: use killpg
-	if cmd.ProcessState != nil && !cmd.ProcessState.Exited() {
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
-		time.Sleep(500 * time.Millisecond)
-		if !cmd.ProcessState.Exited() {
-			syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
-		}
+	if err := killProcessGroup(cmd.Process.Pid); err != nil {
+		log.Printf("[WARN] Failed to kill process group: %v\n", err)
+	} else {
 		log.Printf("[OK] Process tree killed\n")
 	}
 }

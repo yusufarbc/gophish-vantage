@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 // JSONList is a JSON-backed string list for scanner tools or settings.
@@ -48,7 +49,7 @@ func (t *JSONList) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func CreateScanTask(uid int64, name, target, iface, mode string, tools []string) (Scan, error) {
+func CreateScanTask(uid int64, name, target, iface, mode string, tools []string, scheduledAt *time.Time) (Scan, error) {
 	clean := make([]string, 0, len(tools))
 	seen := map[string]bool{}
 	for _, tool := range tools {
@@ -70,6 +71,10 @@ func CreateScanTask(uid int64, name, target, iface, mode string, tools []string)
 		Mode:              strings.TrimSpace(mode),
 		Status:            "queued",
 		Progress:          0,
+		ScheduledAt:       scheduledAt,
+	}
+	if scheduledAt != nil {
+		s.Status = "scheduled"
 	}
 	if s.Name == "" {
 		s.Name = "Task: " + s.Target
@@ -128,6 +133,21 @@ func UpdateScanTaskProgress(scanID uint, status string, progress int) error {
 		"status":   strings.TrimSpace(status),
 		"progress": progress,
 	}).Error
+}
+
+func GetScheduledScanTasks(now time.Time) ([]Scan, error) {
+	var scans []Scan
+	err := db.Where("status = ? AND scheduled_at <= ?", "scheduled", now).Find(&scans).Error
+	return scans, err
+}
+
+func (s *Scan) GetToolList() []string {
+	var tools []string
+	if s.EnabledTools == "" {
+		return tools
+	}
+	json.Unmarshal([]byte(s.EnabledTools), &tools)
+	return tools
 }
 
 func DeleteScanTask(uid int64, id uint) error {

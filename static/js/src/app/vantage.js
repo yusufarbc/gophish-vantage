@@ -1,34 +1,50 @@
-function errorFlash(message) {
-    $("#flashes").empty()
-    $("#flashes").append("<div style=\"text-align:center\" class=\"alert alert-danger\">\
-        <i class=\"fa fa-exclamation-circle\"></i> " + message + "</div>")
+// Initialize Toast Container dynamically
+if (!$('#vantage-toast-container').length) {
+    $('body').append('<div id="vantage-toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>');
 }
 
-function successFlash(message) {
-    $("#flashes").empty()
-    $("#flashes").append("<div style=\"text-align:center\" class=\"alert alert-success\">\
-        <i class=\"fa fa-check-circle\"></i> " + message + "</div>")
+function showToast(title, message, type = 'success') {
+    const icon = type === 'error' ? '🚫' : type === 'warning' ? '⚠️' : '✅';
+    const bgClass = type === 'error' ? 'bg-red-900/90 border-red-500' : 
+                   type === 'warning' ? 'bg-yellow-800/90 border-yellow-500' : 
+                   'bg-vantage-accent/90 border-green-500';
+    
+    const toastId = 'toast-' + Math.random().toString(36).substr(2, 9);
+    const toastHtml = `
+        <div id="${toastId}" class="flex items-start gap-4 p-4 rounded-xl border shadow-xl backdrop-blur-md transform transition-all translate-x-full opacity-0 ${bgClass} text-white min-w-[300px] max-w-sm">
+            <span class="text-xl">${icon}</span>
+            <div class="flex-1">
+                <h5 class="font-bold text-sm tracking-wide shadow-sm pb-1">${title}</h5>
+                <p class="text-xs opacity-90 leading-tight">${message}</p>
+            </div>
+            <button onclick="$('#${toastId}').remove()" class="text-white/60 hover:text-white">&times;</button>
+        </div>
+    `;
+    
+    $('#vantage-toast-container').append(toastHtml);
+    
+    // Slide in
+    setTimeout(() => {
+        $(`#${toastId}`).removeClass('translate-x-full opacity-0').addClass('translate-x-0 opacity-100');
+    }, 10);
+    
+    // Auto remove
+    setTimeout(() => {
+        $(`#${toastId}`).removeClass('translate-x-0 opacity-100').addClass('translate-x-full opacity-0');
+        setTimeout(() => $(`#${toastId}`).remove(), 300);
+    }, 5000);
 }
 
-// Fade message after n seconds
-function errorFlashFade(message, fade) {
-    $("#flashes").empty()
-    $("#flashes").append("<div style=\"text-align:center\" class=\"alert alert-danger\">\
-        <i class=\"fa fa-exclamation-circle\"></i> " + message + "</div>")
-    setTimeout(function(){ 
-        $("#flashes").empty() 
-    }, fade * 1000);
-}
-// Fade message after n seconds
-function successFlashFade(message, fade) {  
-    $("#flashes").empty()
-    $("#flashes").append("<div style=\"text-align:center\" class=\"alert alert-success\">\
-        <i class=\"fa fa-check-circle\"></i> " + message + "</div>")
-    setTimeout(function(){ 
-        $("#flashes").empty() 
-    }, fade * 1000);
+// Override legacy flash functions wrapper
+function errorFlash(msg) { showToast('Error', msg, 'error'); }
+function successFlash(msg) { showToast('Success', msg, 'success'); }
+function errorFlashFade(msg, fade) { showToast('Error', msg, 'error'); }
+function successFlashFade(msg, fade) { showToast('Success', msg, 'success'); }
 
-}
+// Handle Agent Disconnects visually
+window.addEventListener("ws_error", function(evt) {
+    showToast('Tunnel Disconnected', 'Agent tun0 connection lost. Scans may fail.', 'error');
+});
 
 function modalError(message) {
     $("#modal\\.flashes").empty().append("<div style=\"text-align:center\" class=\"alert alert-danger\">\

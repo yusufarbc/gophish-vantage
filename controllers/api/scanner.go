@@ -15,12 +15,14 @@ import (
 	"github.com/gophish/gophish/reporting"
 	"github.com/gophish/gophish/scanner"
 	"github.com/gorilla/mux"
+	"time"
 )
 
 // ScanRequest is the JSON body for POST /api/scanner/scan
 type ScanRequest struct {
 	TaskName      string   `json:"task_name,omitempty"`
 	Target        string   `json:"target"`
+	ScheduleAt    string   `json:"schedule_at,omitempty"` // RFC3339 format
 	Tool          string   `json:"tool"`
 	EnabledTools  []string `json:"enabled_tools,omitempty"`
 	Parallel      bool     `json:"parallel,omitempty"`
@@ -74,9 +76,29 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 	if len(tools) == 0 && req.Tool != "" {
 		tools = []string{req.Tool}
 	}
-	scanRecord, err := models.CreateScanTask(uid, req.TaskName, req.Target, req.Interface, mode, tools)
+	var scheduledTime *time.Time
+	if req.ScheduleAt != "" {
+		t, err := time.Parse(time.RFC3339, req.ScheduleAt)
+		if err != nil {
+			JSONResponse(w, models.Response{Success: false, Message: "Invalid schedule_at format (use RFC3339)"}, http.StatusBadRequest)
+			return
+		}
+		scheduledTime = &t
+	}
+
+	scanRecord, err := models.CreateScanTask(uid, req.TaskName, req.Target, req.Interface, mode, tools, scheduledTime)
 	if err != nil {
 		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	// If scheduled for future, don't run now. The worker will pick it up.
+	if scheduledTime != nil && scheduledTime.After(time.Now()) {
+		JSONResponse(w, ScanResponse{
+			Message: "scan scheduled",
+			Target:  req.Target,
+			Mode:    mode,
+		}, http.StatusAccepted)
 		return
 	}
 

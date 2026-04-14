@@ -18,7 +18,7 @@ RUN gulp
 # ========================================================================================
 # STAGE 2: ProjectDiscovery Tools Builder
 # ========================================================================================
-FROM golang:latest AS pd-tools-builder
+FROM golang:1.24-bookworm AS pd-tools-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpcap-dev libdumbnet-dev gcc g++ make && \
     rm -rf /var/lib/apt/lists/*
@@ -35,7 +35,7 @@ RUN set -eux; \
 # ========================================================================================
 # STAGE 3: Gophish/Vantage Backend Builder
 # ========================================================================================
-FROM golang:latest AS app-builder
+FROM golang:1.24-bookworm AS app-builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
@@ -48,7 +48,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build \
 # ========================================================================================
 # STAGE 4: Production Runtime
 # ========================================================================================
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 LABEL maintainer="Vantage Security Platform" \
       description="Unified Gophish + ProjectDiscovery Security Operations Hub v2.0"
@@ -59,8 +59,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 libdumbnet1 curl wget jq dnsmasq && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Create application user
-RUN groupadd -r vantage && useradd -r -g vantage vantage
+# Create application user with home directory
+RUN groupadd -r vantage && useradd -r -g vantage -d /home/vantage -m vantage
+ENV HOME=/home/vantage
 
 WORKDIR /opt/vantage
 
@@ -73,20 +74,21 @@ COPY --from=app-builder /app/templates /opt/vantage/templates
 COPY --from=app-builder /app/static /opt/vantage/static
 COPY --from=asset-builder /build/static/js/dist /opt/vantage/static/js/dist
 COPY --from=asset-builder /build/static/css/dist /opt/vantage/static/css/dist
+COPY --from=app-builder /app/db /opt/vantage/migrations
 COPY --from=app-builder /app/config.json /opt/vantage/config.json.example
+COPY --from=app-builder /app/VERSION /opt/vantage/VERSION
 COPY docker/docker-entrypoint.sh /opt/vantage/docker-entrypoint.sh
 
 # Prepare directories
-RUN mkdir -p /opt/vantage/db /root/.nuclei-templates /root/.config/nuclei && \
-    chown -R vantage:vantage /opt/vantage /root/.nuclei-templates /root/.config/nuclei && \
-    chmod +x /opt/vantage/docker-entrypoint.sh
+RUN mkdir -p /opt/vantage/db /home/vantage/.nuclei-templates /home/vantage/.config/nuclei && \
+    chown -R vantage:vantage /opt/vantage /home/vantage/.nuclei-templates /home/vantage/.config/nuclei && \
+    chmod +x /opt/vantage/docker-entrypoint.sh /opt/vantage/vantage-server
 
 # Set Linux capabilities for network operations (only for binaries that exist)
 RUN set -eux; \
     [ -f /usr/local/bin/naabu ] && setcap cap_net_raw,cap_net_admin=ep /usr/local/bin/naabu || true; \
     [ -f /usr/local/bin/httpx ] && setcap cap_net_raw=ep /usr/local/bin/httpx || true; \
-    [ -f /usr/local/bin/chisel ] && setcap cap_net_admin=ep /usr/local/bin/chisel || true; \
-    [ -f /opt/vantage/vantage-server ] && setcap cap_net_bind_service=ep /opt/vantage/vantage-server || true
+    [ -f /usr/local/bin/chisel ] && setcap cap_net_admin=ep /usr/local/bin/chisel || true
 
 # Verify capabilities (non-fatal)
 RUN set -eux; \

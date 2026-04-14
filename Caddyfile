@@ -14,8 +14,8 @@
         format json
     }
 
-    # Auto-HTTPS settings
-    auto_https on
+    # Auto-HTTPS settings (set to off for local dev/self-signed)
+    auto_https off
     default_sni localhost
 }
 
@@ -58,7 +58,7 @@
 # DEVELOPMENT: Local HTTP Server (No TLS, No Auth)
 # ═════════════════════════════════════════════════════════════════════════════
 
-:8080 {
+:443 {
     import security_headers
     
     # Main reverse proxy handler
@@ -67,9 +67,6 @@
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
         header_up X-Forwarded-Host {host}
-        
-        # WebSocket support (must be after headers)
-        websocket
     }
     
     # Compression

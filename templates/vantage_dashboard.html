@@ -1,206 +1,15 @@
 {{define "body"}}
+    <link rel="stylesheet" href="/css/vantage_core.css">
     <div id="vantage-app" class="animate-fadeIn">
                 <!-- Dashboard Tab -->
-                <div id="tab-dashboard" class="tab-content p-8 space-y-6">
-                    <div class="grid grid-cols-4 gap-4">
-                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Toplam Zafiyet</p>
-                            <p class="text-3xl font-bold text-vantage-accent" id="stat-total">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Kapsam: Dahili + Harici</p>
-                        </div>
-                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Kritik Risk</p>
-                            <p class="text-3xl font-bold" id="stat-critical" style="color: #d498ff;">0</p>
-                            <p class="text-xs text-gray-500 mt-2">CVSS 9.0 - 10.0</p>
-                        </div>
-                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Aktif Taramalar</p>
-                            <p class="text-3xl font-bold text-blue-400" id="stat-scans">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Keşif / Doğrulama</p>
-                        </div>
-                        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                            <p class="panel-title mb-2">Kampanya Sayısı</p>
-                            <p class="text-3xl font-bold text-yellow-400" id="stat-campaigns">0</p>
-                            <p class="text-xs text-gray-500 mt-2">Bağlı farkındalık operasyonları</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border col-span-2">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-semibold">Severity Distribution</h3>
-                                <span class="text-xs text-vantage-accent font-mono">last sync 30s</span>
-                            </div>
-                            <canvas id="severityChart"></canvas>
-                        </div>
-                        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-                            <h3 class="font-semibold mb-4">Assessment Pipeline</h3>
-                            <div class="space-y-4 text-sm">
-                                <div>
-                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Asset Discovery</span><span class="text-vantage-accent font-mono">82%</span></div>
-                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-vantage-accent h-2 rounded-full" style="width: 82%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Port & Service</span><span class="text-blue-400 font-mono">64%</span></div>
-                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-blue-400 h-2 rounded-full" style="width: 64%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between mb-1"><span class="text-gray-400">Vulnerability Match</span><span class="text-yellow-400 font-mono">47%</span></div>
-                                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-yellow-400 h-2 rounded-full" style="width: 47%"></div></div>
-                                </div>
-                                <div class="pt-2 border-t openvas-divider">
-                                    <p class="text-xs text-gray-500">Queue Status</p>
-                                    <p class="text-sm mt-1 font-mono text-gray-300">
-                                        sent: <span id="mail-sent">0</span> /
-                                        deferred: <span id="mail-deferred">0</span> /
-                                        queued: <span id="mail-queued">0</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {{template "vantage/dashboard_stats" .}}
 
                 <!-- Tasks Tab -->
                 <div id="tab-tasks" class="tab-content hidden p-8 space-y-6">
-                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold">Tasks</h3>
-                            <button onclick="openTaskModal()" class="bg-vantage-accent hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg text-sm">+ New Task</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="text-gray-400 border-b border-vantage-border">
-                                    <tr>
-                                        <th class="px-3 py-2">Task</th>
-                                        <th class="px-3 py-2">Target</th>
-                                        <th class="px-3 py-2">Interface</th>
-                                        <th class="px-3 py-2">Status</th>
-                                        <th class="px-3 py-2">Progress</th>
-                                        <th class="px-3 py-2">Tools</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tasks-tbody" class="divide-y divide-gray-800">
-                                    <tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">No tasks yet.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- New Task Modal -->
-                    <div id="task-modal" class="fixed inset-0 bg-black/70 hidden z-50 items-center justify-center p-4">
-                        <div class="glass-card w-full max-w-3xl rounded-lg border border-vantage-border p-6 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <h4 class="text-lg font-bold">New Task Wizard</h4>
-                                <button onclick="closeTaskModal()" class="text-gray-400 hover:text-white text-xl leading-none">&times;</button>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Task Name</label>
-                                    <input id="task-name" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm" placeholder="External perimeter baseline">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Target</label>
-                                    <input id="task-target" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm" placeholder="10.10.0.0/16 or example.com">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-2 uppercase">Scanner Config</label>
-                                <div class="grid grid-cols-4 gap-2 text-sm" id="task-tools-grid">
-                                    <label><input type="checkbox" value="subfinder" class="task-tool mr-1">Subfinder</label>
-                                    <label><input type="checkbox" value="httpx" class="task-tool mr-1">Httpx</label>
-                                    <label><input type="checkbox" value="nuclei" class="task-tool mr-1">Nuclei</label>
-                                    <label><input type="checkbox" value="naabu" class="task-tool mr-1">Naabu</label>
-                                    <label><input type="checkbox" value="dnsx" class="task-tool mr-1">DNSx</label>
-                                    <label><input type="checkbox" value="katana" class="task-tool mr-1">Katana</label>
-                                    <label><input type="checkbox" value="tlsx" class="task-tool mr-1">TLSx</label>
-                                    <label><input type="checkbox" value="asnmap" class="task-tool mr-1">ASNMap</label>
-                                    <label><input type="checkbox" value="uncover" class="task-tool mr-1">Uncover</label>
-                                    <label><input type="checkbox" value="assetfinder" class="task-tool mr-1">Assetfinder</label>
-                                    <label><input type="checkbox" value="interactsh-client" class="task-tool mr-1">Interactsh</label>
-                                    <label><input type="checkbox" value="cloudlist" class="task-tool mr-1">Cloudlist</label>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1 uppercase">Network Interface</label>
-                                    <select id="task-interface" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm">
-                                        <option value="">Default (eth0)</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-end">
-                                    <label class="text-sm"><input id="task-parallel" type="checkbox" class="mr-1">Run tools in parallel</label>
-                                </div>
-                            </div>
-                            <div class="flex justify-end gap-2">
-                                <button onclick="closeTaskModal()" class="px-4 py-2 text-sm rounded bg-gray-700 hover:bg-gray-600">Cancel</button>
-                                <button onclick="createTask()" class="px-4 py-2 text-sm rounded bg-vantage-accent hover:bg-green-700 text-white font-bold">Start Task</button>
-                            </div>
-                        </div>
-                    </div>
-
-                        <!-- Reverse Tunnel Control Panel -->
-                        <div class="glass-card rounded-lg border border-vantage-border overflow-hidden">
-                            <div class="bg-gradient-to-r from-blue-900/20 to-black/50 px-6 py-4 border-b border-vantage-border flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    <h4 class="font-semibold text-sm">Reverse Tunnel (Chisel)</h4>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span id="tunnel-server-badge" class="px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-500">Server Stopped</span>
-                                </div>
-                            </div>
-                            <div class="p-6 space-y-5">
-                                <!-- Server Controls -->
-                                <div>
-                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Server Controls <span class="normal-case font-normal text-gray-600">(port 9090)</span></p>
-                                    <div class="flex gap-3">
-                                        <button onclick="startTunnel()" class="flex-1 flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-600/40 text-blue-300 font-medium py-2 px-4 rounded-lg text-sm transition-all active:scale-95">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                            Start Server
-                                        </button>
-                                        <button onclick="stopTunnel()" class="flex-1 flex items-center justify-center gap-2 bg-red-900/20 hover:bg-red-900/40 border border-red-900/40 text-red-400 font-medium py-2 px-4 rounded-lg text-sm transition-all active:scale-95">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-                                            Stop Server
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Route Management -->
-                                <div class="border-t border-vantage-border pt-5">
-                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Route Management</p>
-                                    <div class="flex gap-3">
-                                        <input type="text" id="route-cidr" placeholder="192.168.1.0/24" class="flex-1 bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-vantage-accent">
-                                        <select id="route-iface" class="w-40 bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-sm outline-none focus:border-vantage-accent">
-                                            <option value="">via interfaceâ€¦</option>
-                                        </select>
-                                        <button onclick="addRoute()" class="bg-vantage-accent hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all active:scale-95 whitespace-nowrap">+ Add Route</button>
-                                    </div>
-                                    <p id="route-msg" class="text-xs mt-2 text-gray-600"></p>
-                                </div>
-
-                                <!-- Agent Connect Instructions -->
-                                <div class="border-t border-vantage-border pt-5">
-                                    <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Agent Connect Command</p>
-                                    <div class="bg-black/60 rounded p-3 font-mono text-xs text-green-400 border border-green-900/30 select-all">
-                                        chisel client https://&lt;YOUR-VPS&gt;:9090 R:tun0:0.0.0.0
-                                    </div>
-                                    <p class="text-xs text-gray-600 mt-2">Run this on the internal agent machine. Once connected, <span class="font-mono text-green-500">tun0</span> will appear in the interface list.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live Log Terminal -->
-                    <div class="glass-card rounded-lg border border-vantage-border overflow-hidden">
-                        <div class="bg-gradient-to-r from-gray-900 to-black/50 px-6 py-4 border-b border-vantage-border flex justify-between items-center">
-                            <h4 class="font-mono text-sm font-semibold">Live Scanner Output</h4>
-                            <span class="px-2 py-1 rounded text-xs bg-red-900/50 text-red-300 animate-pulse" id="scanner-status" style="display:none;">SCANNING...</span>
-                        </div>
-                        <div class="h-96 overflow-y-auto bg-black p-4 space-y-0.5" id="scanner-logs">
-                            <p class="terminal-line text-gray-600 text-xs">[READY] Awaiting scan initialization...</p>
-                        </div>
-                    </div>
+                    {{template "vantage/task_list" .}}
+                    {{template "vantage/task_modal" .}}
+                    {{template "vantage/tunnel_panel" .}}
+                    {{template "vantage/live_logs" .}}
                 </div>
 
                 <!-- Results Tab -->
@@ -636,27 +445,47 @@
 
         async function createTask() {
             const taskName = document.getElementById('task-name').value.trim();
-            const target = document.getElementById('task-target').value.trim();
+            const targetEl = document.getElementById('task-target');
+            const target = targetEl.value.trim();
             const iface = document.getElementById('task-interface').value;
             const parallel = document.getElementById('task-parallel').checked;
             const tools = Array.from(document.querySelectorAll('.task-tool:checked')).map(x => x.value);
 
+            // Reset UI State
+            targetEl.classList.remove('border-red-500', 'bg-red-900/10');
+            const btn = document.getElementById('submit-task-btn');
+            const btnText = document.getElementById('submit-task-text');
+            const btnSpinner = document.getElementById('submit-task-spinner');
+
             if (!target) {
-                alert('Please enter a target');
+                targetEl.classList.add('border-red-500', 'bg-red-900/10');
+                if (typeof showToast !== 'undefined') showToast('Validation Error', 'Please enter a target', 'error');
+                return;
+            }
+            if (!target.match(/^[a-zA-Z0-9.\/:-]+$/)) {
+                targetEl.classList.add('border-red-500', 'bg-red-900/10');
+                if (typeof showToast !== 'undefined') showToast('Validation Error', 'Invalid Target Format (Use CIDR, IP, or Domain)', 'error');
                 return;
             }
             if (tools.length === 0) {
-                alert('Please select at least one scanner tool.');
+                if (typeof showToast !== 'undefined') showToast('Validation Error', 'Please select at least one scanner tool.', 'error');
                 return;
             }
 
+            // Show Spinner
+            if (btn) btn.disabled = true;
+            if (btnText) btnText.textContent = 'Starting...';
+            if (btnSpinner) btnSpinner.classList.remove('hidden');
+
             try {
+                const scheduleAt = document.getElementById('task-schedule').value;
                 const body = {
                     task_name: taskName,
                     target,
                     enabled_tools: tools,
                     interface: iface,
-                    parallel
+                    parallel,
+                    schedule_at: scheduleAt ? new Date(scheduleAt).toISOString() : ""
                 };
 
                 const resp = await secureFetch('/api/scanner/start', {
@@ -664,16 +493,24 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
+                
                 if (resp.ok) {
+                    if (typeof showToast !== 'undefined') showToast('Task Started', `Target ${target} queued successfully.`);
                     closeTaskModal();
                     loadTasks();
                     const status = document.getElementById('scanner-status');
                     if (status) status.style.display = 'block';
                 } else {
-                    alert('Scan failed: ' + await resp.text());
+                    const errText = await resp.text();
+                    if (typeof showToast !== 'undefined') showToast('Task Failed', errText, 'error');
                 }
             } catch (e) {
-                alert('Error: ' + e.message);
+                if (typeof showToast !== 'undefined') showToast('API Error', e.message, 'error');
+            } finally {
+                // Restore Spinner
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.textContent = 'Start Task';
+                if (btnSpinner) btnSpinner.classList.add('hidden');
             }
         }
 
@@ -687,8 +524,11 @@
                 tbody.innerHTML = (tasks || []).map(t => {
                     const done = (t.status || '').toLowerCase() === 'done';
                     const running = (t.status || '').toLowerCase() === 'running';
+                    const isScheduled = (t.status || '').toLowerCase() === 'scheduled';
                     const badge = done
                         ? '<span class="px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300">Done</span>'
+                        : isScheduled
+                        ? `<span class="px-2 py-1 text-xs rounded bg-purple-900/50 text-purple-300">Scheduled: ${new Date(t.scheduled_at).toLocaleString()}</span>`
                         : `<span class="px-2 py-1 text-xs rounded ${running ? 'bg-green-900/50 text-green-300' : 'bg-gray-700 text-gray-300'}">${t.status || 'queued'}</span>`;
                     const progress = Number(t.progress || 0);
                     
@@ -755,9 +595,15 @@
                         telegram_chat_id: tgChat
                     })
                 });
-                if (resp.ok) alert('Notification settings saved successfully');
-                else alert('Failed to save settings: ' + await resp.text());
-            } catch (e) { alert('Error: ' + e.message); }
+                if (resp.ok) {
+                    if (typeof showToast !== 'undefined') showToast('Success', 'Notification settings saved successfully', 'success');
+                } else {
+                    const err = await resp.text();
+                    if (typeof showToast !== 'undefined') showToast('Failed', 'Failed to save settings: ' + err, 'error');
+                }
+            } catch (e) {
+                if (typeof showToast !== 'undefined') showToast('Error', e.message, 'error');
+            }
         }
 
         async function loadNotifyConfig() {
@@ -1123,4 +969,4 @@
         });
     </script>
 {{end}}
-
+{{define "scripts"}}{{end}}

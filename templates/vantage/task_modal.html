@@ -1,0 +1,391 @@
+{{define "vantage/task_modal"}}
+<div id="task-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 items-center justify-center p-4 animate-fadeIn">
+    <div class="glass-card w-full max-w-4xl rounded-2xl border border-vantage-border/50 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Top accent line -->
+        <div class="h-1 bg-gradient-to-r from-vantage-accent via-blue-500 to-purple-600"></div>
+        
+        <!-- Header -->
+        <div class="p-6 border-b border-vantage-border/30 flex items-center justify-between bg-vantage-sidebar/30">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-vantage-accent/10 border border-vantage-accent/20 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-white tracking-tight">Yeni Tarama Görevi</h4>
+                    <p class="text-xs text-gray-400 mt-0.5" id="modal-step-subtitle">Tarama parametrelerini ve hedefleri yapılandırın</p>
+                </div>
+            </div>
+            
+            <!-- Step Progress Indicator -->
+            <div class="flex items-center gap-2 mr-8">
+                <div id="step-dot-1" class="w-2 h-2 rounded-full bg-vantage-accent shadow-[0_0_8px_rgba(186,218,85,0.6)]"></div>
+                <div class="w-4 h-px bg-vantage-border"></div>
+                <div id="step-dot-2" class="w-2 h-2 rounded-full bg-gray-700"></div>
+                <div class="w-4 h-px bg-vantage-border"></div>
+                <div id="step-dot-3" class="w-2 h-2 rounded-full bg-gray-700"></div>
+            </div>
+
+            <button onclick="closeTaskModal()" class="text-gray-500 hover:text-white transition-colors p-2">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
+            
+            <!-- Step 1: Target Selection -->
+            <div id="task-step-1" class="space-y-8 animate-slideInRight">
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Görev Tanımı</label>
+                    <input id="task-name" type="text" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all placeholder:text-gray-600" placeholder="Örn: Dış Ağ Sızma Testi - Q2 2024">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-48">
+                    <div class="space-y-3">
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Kayıtlı Varlıklar</label>
+                        <select id="task-target-select" onchange="syncTargetInput()" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all appearance-none cursor-pointer">
+                            <option value="">-- Veritabanından Seç --</option>
+                        </select>
+                        <p class="text-[10px] text-gray-500">Asset Management modülünde tanımlı olan IP ve Domainler</p>
+                    </div>
+                    <div class="relative h-full flex flex-col">
+                        <div class="absolute inset-y-0 -left-4 w-px bg-vantage-border/20 hidden md:block"></div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Manuel Hedef Girişi</label>
+                        <textarea id="task-target" class="flex-1 w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all font-mono resize-none placeholder:text-gray-700" placeholder="10.10.10.0/24&#10;target-company.com&#10;192.168.1.100"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Scan Profiles -->
+            <div id="task-step-2" class="hidden space-y-6 animate-slideInRight">
+                <div class="flex items-center justify-between bg-vantage-accent/10 p-5 rounded-2xl border border-vantage-accent/20 shadow-inner group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-vantage-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-sm font-bold text-vantage-accent tracking-tight">Full Spectrum Scan (Tüm Spektrum)</span>
+                            <p class="text-[11px] text-gray-400 mt-0.5">ProjectDiscovery araçlarının tamamını optimize edilmiş parametrelerle devreye alır.</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="full-spectrum-toggle" onchange="toggleFullSpectrum(this.checked)" class="sr-only peer">
+                        <div class="w-14 h-7 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-gray-400 after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vantage-accent peer-checked:after:bg-white peer-checked:shadow-[0_0_15px_rgba(186,218,85,0.4)]"></div>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="tool-groups-container">
+                    <!-- Group 1: Recon -->
+                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Keşif (Recon)</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="subfinder" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Subfinder</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="katana" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Katana</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="dnsx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Dnsx</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Group 2: Port -->
+                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Port & Servis</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="naabu" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Naabu</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="httpx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Httpx</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Group 3: Zafiyet -->
+                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                            <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Zafiyet</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="nuclei" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Nuclei</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="tlsx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Tlsx</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Group 4: OSINT -->
+                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                            <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">OSINT</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="uncover" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Uncover</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
+                                <input type="checkbox" value="cloudlist" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                                <span>Cloudlist</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Network & Finalize -->
+            <div id="task-step-3" class="hidden space-y-8 animate-slideInRight">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Ağ Arayüzü (Network Interface)</label>
+                        <select id="task-interface" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all cursor-pointer">
+                            <option value="eth0">eth0 (Dış Ağ / Public)</option>
+                            <option value="tun0">tun0 (İç Ağ / VPN-Tunnel)</option>
+                        </select>
+                        <p class="text-[10px] text-gray-500">Taramanın hangi ağ bacağı üzerinden gerçekleştirileceği.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="space-y-3">
+                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Planlanmış Zaman (Opsiyonel)</label>
+                            <input id="task-schedule" type="datetime-local" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all text-gray-400">
+                        </div>
+                        <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group p-1">
+                            <input id="task-parallel" type="checkbox" class="rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <span>Araçları paralel olarak çalıştır</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-vantage-accent/5 rounded-2xl border border-vantage-border/30 p-6 space-y-4">
+                    <h5 class="text-xs font-bold text-white uppercase tracking-wider border-b border-vantage-border/30 pb-3">Tarama Özeti</h5>
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold">Hedefler</span>
+                            <div id="summary-targets" class="text-xs text-gray-300 truncate">Hesaplanıyor...</div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold">Aktif Araçlar</span>
+                            <div id="summary-tools" class="text-xs text-gray-300">Seçilmedi</div>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold">Mod</span>
+                            <div id="summary-interface" class="text-xs text-gray-300 font-mono">eth0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer / Navigation -->
+        <div class="p-6 border-t border-vantage-border/30 bg-vantage-sidebar/30 flex items-center justify-between">
+            <button id="btn-back" onclick="prevStep()" class="hidden px-6 py-2.5 text-sm font-semibold rounded-xl bg-gray-800/50 hover:bg-gray-700 text-gray-400 transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Geri
+            </button>
+            <div class="flex-1"></div>
+            <div class="flex items-center gap-3">
+                <button onclick="closeTaskModal()" class="px-6 py-2.5 text-sm font-semibold rounded-xl text-gray-500 hover:text-white transition-all">İptal</button>
+                <button id="btn-next" onclick="nextStep()" class="px-8 py-2.5 text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/10 transition-all flex items-center gap-2">
+                    Sonraki
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <button id="submit-task-btn" onclick="createTask()" class="hidden px-8 py-2.5 text-sm font-black rounded-xl bg-vantage-accent hover:bg-vantage-accent/90 text-gray-900 shadow-xl shadow-vantage-accent/20 transition-all active:scale-95 flex justify-center items-center gap-2">
+                    <span id="submit-task-text">Taramayı Başlat</span>
+                    <svg id="submit-task-spinner" class="animate-spin h-4 w-4 hidden" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+
+function updateModalUI() {
+    // Hide all steps
+    document.getElementById('task-step-1').classList.add('hidden');
+    document.getElementById('task-step-2').classList.add('hidden');
+    document.getElementById('task-step-3').classList.add('hidden');
+    
+    // Show current step
+    document.getElementById('task-step-' + currentStep).classList.remove('hidden');
+    
+    // Update dots
+    for(let i=1; i<=3; i++) {
+        const dot = document.getElementById('step-dot-' + i);
+        if(i <= currentStep) {
+            dot.classList.add('bg-vantage-accent');
+            dot.classList.add('shadow-[0_0_8px_rgba(186,218,85,0.6)]');
+            dot.classList.remove('bg-gray-700');
+        } else {
+            dot.classList.remove('bg-vantage-accent');
+            dot.classList.remove('shadow-[0_0_8px_rgba(186,218,85,0.6)]');
+            dot.classList.add('bg-gray-700');
+        }
+    }
+    
+    // Update buttons
+    const btnBack = document.getElementById('btn-back');
+    const btnNext = document.getElementById('btn-next');
+    const btnSubmit = document.getElementById('submit-task-btn');
+    const subtitle = document.getElementById('modal-step-subtitle');
+    
+    if(currentStep === 1) {
+        btnBack.classList.add('hidden');
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
+        subtitle.innerText = "Hedef kapsamını ve görev adını belirleyin";
+    } else if(currentStep === 2) {
+        btnBack.classList.remove('hidden');
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
+        subtitle.innerText = "Kullanılacak güvenlik araçlarını seçin";
+    } else if(currentStep === 3) {
+        btnBack.classList.remove('hidden');
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.remove('hidden');
+        subtitle.innerText = "Ağ yapılandırması ve son kontrol";
+        updateSummary();
+    }
+}
+
+function nextStep() {
+    if(currentStep === 1) {
+        if(!document.getElementById('task-name').value) {
+            alert('Lütfen bir görev adı girin.');
+            return;
+        }
+        if(!document.getElementById('task-target').value) {
+            alert('Lütfen en az bir hedef belirtin.');
+            return;
+        }
+    }
+    if(currentStep === 2) {
+        const checkedTools = document.querySelectorAll('.task-tool:checked');
+        if(checkedTools.length === 0) {
+            alert('Lütfen en az bir araç seçin.');
+            return;
+        }
+    }
+    if(currentStep < 3) {
+        currentStep++;
+        updateModalUI();
+    }
+}
+
+function prevStep() {
+    if(currentStep > 1) {
+        currentStep--;
+        updateModalUI();
+    }
+}
+
+function toggleFullSpectrum(checked) {
+    const tools = document.querySelectorAll('.task-tool');
+    tools.forEach(t => t.checked = checked);
+}
+
+function syncTargetInput() {
+    const select = document.getElementById('task-target-select');
+    const input = document.getElementById('task-target');
+    if(select.value) {
+        if(input.value) input.value += '\n' + select.value;
+        else input.value = select.value;
+        select.value = ""; // Reset select after picking
+    }
+}
+
+function updateSummary() {
+    const targetVal = document.getElementById('task-target').value;
+    const lines = targetVal.split('\n').filter(l => l.trim()).length;
+    document.getElementById('summary-targets').innerText = lines + " Hedef Belirlendi";
+    
+    const checkedTools = document.querySelectorAll('.task-tool:checked');
+    document.getElementById('summary-tools').innerText = checkedTools.length + " Araç Aktif";
+    
+    const iface = document.getElementById('task-interface').value;
+    document.getElementById('summary-interface').innerText = iface;
+}
+
+// Fetch targets when opening modal
+function loadTargetsIntoSelect() {
+    fetch('/api/v1/targets')
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById('task-target-select');
+            // Keep first option
+            select.innerHTML = '<option value="">-- Veritabanından Seç --</option>';
+            if(data.targets) {
+                data.targets.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.value;
+                    opt.innerText = t.value + (t.tag ? ' ['+t.tag+']' : '');
+                    select.appendChild(opt);
+                });
+            }
+        });
+}
+
+// Override original openTaskModal if needed or just add listener
+const originalOpenTaskModal = window.openTaskModal;
+window.openTaskModal = function() {
+    currentStep = 1;
+    updateModalUI();
+    loadTargetsIntoSelect();
+    document.getElementById('task-modal').classList.remove('hidden');
+    document.getElementById('task-modal').classList.add('flex');
+};
+
+function closeTaskModal() {
+    document.getElementById('task-modal').classList.add('hidden');
+    document.getElementById('task-modal').classList.remove('flex');
+}
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-slideInRight {
+    animation: slideInRight 0.3s ease-out forwards;
+}
+</style>
+{{end}}

@@ -1,0 +1,80 @@
+{{define "vantage/task_list"}}
+<div x-data="{ loading: true }" x-init="setTimeout(() => loading = false, 800)" class="glass-card p-6 rounded-2xl border border-vantage-border/50 shadow-xl overflow-hidden relative">
+    <!-- Header Decor -->
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-vantage-accent/50 via-vantage-accent to-vantage-accent/50 opacity-20"></div>
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-vantage-accent/10 flex items-center justify-center border border-vantage-accent/20">
+                <svg class="w-4 h-4 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <h3 class="text-sm font-black uppercase tracking-widest text-white/90">Scan Tasks</h3>
+        </div>
+        <button onclick="openTaskModal()" class="group bg-vantage-accent hover:bg-vantage-accent/90 text-gray-900 font-bold px-5 py-2 rounded-xl text-xs transition-all active:scale-95 shadow-lg shadow-vantage-accent/20 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+            New Task
+        </button>
+    </div>
+
+    <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs border-separate border-spacing-y-2">
+            <thead class="text-gray-500 font-black uppercase tracking-widest text-[10px]">
+                <tr>
+                    <th class="px-4 py-1">Mission</th>
+                    <th class="px-4 py-1 text-center">Engine Status</th>
+                    <th class="px-4 py-1">Operational Progress</th>
+                    <th class="px-4 py-1">Target Scope</th>
+                    <th class="px-4 py-1 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tasks-tbody">
+                <!-- Skeletons (Alpine driven) -->
+                <template x-if="loading">
+                    <template x-for="i in 3">
+                        <tr class="animate-pulse">
+                            <td class="px-4 py-4 bg-white/5 rounded-l-xl border-y border-l border-white/5">
+                                <div class="h-4 bg-white/10 rounded w-32"></div>
+                            </td>
+                            <td class="px-4 py-4 bg-white/5 border-y border-white/5">
+                                <div class="h-4 bg-white/10 rounded w-16 mx-auto"></div>
+                            </td>
+                            <td class="px-4 py-4 bg-white/5 border-y border-white/5">
+                                <div class="h-2 bg-white/10 rounded w-full"></div>
+                            </td>
+                            <td class="px-4 py-4 bg-white/5 border-y border-white/5">
+                                <div class="h-4 bg-white/10 rounded w-24"></div>
+                            </td>
+                            <td class="px-4 py-4 bg-white/5 rounded-r-xl border-y border-r border-white/5">
+                                <div class="h-4 bg-white/10 rounded w-20 ml-auto"></div>
+                            </td>
+                        </tr>
+                    </template>
+                </template>
+
+                <!-- Real Content Holder (populated by app.js) -->
+                <tr id="empty-tasks-row" x-show="!loading" class="transition-opacity duration-500">
+                    <td colspan="5" class="px-4 py-20 text-center bg-white/[0.02] rounded-2xl border border-dashed border-vantage-border/50">
+                        <div class="flex flex-col items-center justify-center space-y-5">
+                            <div class="relative">
+                                <div class="absolute inset-0 bg-vantage-accent/20 blur-2xl rounded-full"></div>
+                                <svg class="relative w-16 h-16 text-vantage-border group-hover:text-vantage-accent/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-sm font-bold text-gray-400">Tactical Silence</p>
+                                <p class="text-xs text-gray-600">No active scan operations detected in the current sector.</p>
+                            </div>
+                            <button onclick="openTaskModal()" class="text-[10px] font-black uppercase tracking-tighter text-vantage-accent hover:text-white transition-colors border-b border-vantage-accent/30 flex items-center gap-1">
+                                Initiate Primary Protocol
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}

@@ -184,6 +184,7 @@ type templateParams struct {
 	Token        string
 	Version      string
 	ModifySystem bool
+	PDTools      []string
 }
 
 // newTemplateParams returns the default template parameters for a user and
@@ -198,6 +199,11 @@ func newTemplateParams(r *http.Request) templateParams {
 		ModifySystem: modifySystem,
 		Version:      config.Version,
 		Flashes:      session.Flashes(),
+		PDTools: []string{
+			"subfinder", "httpx", "nuclei", "naabu",
+			"dnsx", "katana", "tlsx", "uncover",
+			"asnmap", "interactsh-client", "assetfinder", "cloudlist",
+		},
 	}
 }
 
@@ -206,7 +212,7 @@ func (as *AdminServer) Base(w http.ResponseWriter, r *http.Request) {
 	// Render the new Vantage Tailwind dashboard
 	w.Header().Set("Content-Type", "text/html")
 	params := newTemplateParams(r)
-	getTemplate(w, "vantage_dashboard").ExecuteTemplate(w, "vantage_dashboard", params)
+	getTemplate(w, "vantage_dashboard").ExecuteTemplate(w, "base", params)
 }
 
 // Campaigns handles the default path and template execution
@@ -484,9 +490,16 @@ func (as *AdminServer) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // TODO: Make this execute the template, too
 func getTemplate(w http.ResponseWriter, tmpl string) *template.Template {
 	templates := template.New("template")
+	// First parse the specific templates needed for the page
 	_, err := templates.ParseFiles("templates/base.html", "templates/nav.html", "templates/"+tmpl+".html", "templates/flashes.html")
 	if err != nil {
 		log.Error(err)
+	}
+	// Also parse all component templates in vantage subfolder
+	_, err = templates.ParseGlob("templates/vantage/*.html")
+	if err != nil {
+		// Just log error as some pages might not have sub-templates
+		log.Warnf("Template parsing warning (vantage/): %v", err)
 	}
 	return template.Must(templates, err)
 }

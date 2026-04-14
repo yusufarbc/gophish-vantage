@@ -56,10 +56,10 @@ services:
       - ./vantage_data:/opt/vantage/db
       
       # Nuclei templates caching (avoid re-downloading on restart)
-      - nuclei_templates:/root/.nuclei-templates
+      - nuclei_templates:/home/vantage/.nuclei-templates
       
       # Nuclei configuration
-      - nuclei_config:/root/.config/nuclei
+      - nuclei_config:/home/vantage/.config/nuclei
       
       # Optional: Custom config override
       - ./config.json:/opt/vantage/config.json:ro

@@ -1,0 +1,145 @@
+/* Vantage Core Premium Design System */
+
+:root {
+    --vantage-bg: #050505;
+    --vantage-card-bg: rgba(15, 15, 15, 0.7);
+    --vantage-border: rgba(255, 255, 255, 0.08);
+    --vantage-accent: #00ff88;
+    --vantage-accent-glow: rgba(0, 255, 136, 0.2);
+    --vantage-error: #ff4d4d;
+    --vantage-warning: #ffcc00;
+    --vantage-info: #00d9ff;
+    --vantage-text: #e0e0e0;
+    --vantage-text-dim: #808080;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--vantage-bg);
+    color: var(--vantage-text);
+    overflow-x: hidden;
+}
+
+code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: var(--vantage-card-bg);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid var(--vantage-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card:hover {
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 0 0 15px var(--vantage-accent-glow);
+    transform: translateY(-2px);
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.03),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.glass-card:hover::before {
+    left: 100%;
+}
+
+/* Typography Enhancements */
+.panel-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vantage-text-dim);
+}
+
+/* Status Badges */
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.badge-critical { background: rgba(212, 152, 255, 0.1); color: #d498ff; border-color: rgba(212, 152, 255, 0.2); }
+.badge-high { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-color: rgba(255, 77, 77, 0.2); }
+.badge-medium { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border-color: rgba(255, 204, 0, 0.2); }
+.badge-low { background: rgba(0, 217, 255, 0.1); color: #00d9ff; border-color: rgba(0, 217, 255, 0.2); }
+.badge-info { background: rgba(0, 255, 136, 0.1); color: #00ff88; border-color: rgba(0, 255, 136, 0.2); }
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #202020;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #303030;
+}
+
+/* Grid Spacing */
+.vantage-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* Buttons */
+button {
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Inputs */
+input, select, textarea {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--vantage-border) !important;
+    color: var(--vantage-text) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--vantage-accent) !important;
+    box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1) !important;
+}

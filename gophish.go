@@ -44,6 +44,7 @@ import (
 	"github.com/gophish/gophish/notifier"
 	"github.com/gophish/gophish/scanner"
 	"github.com/gophish/gophish/webhook"
+	"github.com/gophish/gophish/worker"
 )
 
 const (
@@ -134,6 +135,10 @@ func main() {
 	if *mode == "admin" || *mode == "all" {
 		go adminServer.Start()
 		go imapMonitor.Start()
+		
+		// Start Vantage Background Worker
+		vantageWorker := worker.NewVantageWorker()
+		vantageWorker.Start()
 	}
 	if *mode == "phish" || *mode == "all" {
 		go phishServer.Start()
