@@ -240,38 +240,81 @@ func (s *VantageScanService) RunDiscovery(userID int64, scanID uint, target, ifa
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				emitLog(fmt.Sprintf("[FATAL] Discovery panic: %v", r))
+				emitLog(fmt.Sprintf("[FATAL] Discovery pipeline panic: %v", r))
 			}
 			_ = models.UpdateScanTaskProgress(scanID, "done", 100)
 			s.State.ReleaseLock()
 		}()
 
-		emitLog("[VANTAGE] ═══ DISCOVERY MODE ════════════")
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Hour)
+		emitLog("[VANTAGE] ═══ STARTING FULL DISCOVERY PIPELINE ════════════")
+		ctx, cancel := context.WithTimeout(context.Background(), 6*time.Hour) // Extended timeout for deep discovery
 		RegisterScan(scanID, cancel)
 		defer UnregisterScan(scanID)
 
-		_ = models.UpdateScanTaskProgress(scanID, "running", 10)
-		emitLog("[VANTAGE] Phase 1 — Subdomain Discovery")
-		subArgs := []string{"subfinder", "-d", target, "-json", "-silent"}
-		subdomains, _ := s.Executor.Collect(ctx, userID, "subfinder", target, ifaceName, subArgs)
+		// ── PHASE 1: OSINT & Asset Discovery ──────────────────────────────────
+		_ = models.UpdateScanTaskProgress(scanID, "running", 5)
+		emitLog("[VANTAGE] Phase 1a — Subdomain Discovery (Subfinder)")
+		subArgs := buildScannerArgs("subfinder", target, ifaceName, nil)
+		subs, _ := s.Executor.Collect(ctx, userID, "subfinder", target, ifaceName, subArgs)
 		if ctx.Err() != nil { return }
-		if len(subdomains) == 0 { subdomains = []string{target} }
+		
+		emitLog("[VANTAGE] Phase 1b — DNS Resolution & Wildcard Filtering (DNSx)")
+		// DNSx resolution for discovered subdomains
+		dnsTargets := deduplicateTargets(append(subs, target))
+		dnsArgs := append([]string{"dnsx", "-json", "-silent", "-wd", target}, targetsToArgs("-d", dnsTargets)...)
+		resolved, _ := s.Executor.Collect(ctx, userID, "dnsx", target, ifaceName, dnsArgs)
+		if ctx.Err() != nil { return }
+		if len(resolved) == 0 { resolved = dnsTargets }
 
-		_ = models.UpdateScanTaskProgress(scanID, "running", 40)
-		emitLog("[VANTAGE] Phase 2 — HTTP Probing")
-		aliveArgs := append([]string{"httpx", "-json", "-silent"}, hostToArgs(subdomains)...)
-		alive, _ := s.Executor.Collect(ctx, userID, "httpx", target, ifaceName, aliveArgs)
+		// ── PHASE 2: Network & Port Scanning ──────────────────────────────────
+		_ = models.UpdateScanTaskProgress(scanID, "running", 25)
+		emitLog(fmt.Sprintf("[VANTAGE] Phase 2 — Port Scanning (%d targets) (Naabu)", len(resolved)))
+		naabuArgs := append([]string{"naabu", "-json", "-silent", "-top-ports", "1000"}, targetsToArgs("-host", resolved)...)
+		if ifaceName != "" { naabuArgs = append(naabuArgs, "-interface", ifaceName) }
+		openPorts, _ := s.Executor.Collect(ctx, userID, "naabu", target, ifaceName, naabuArgs)
+		if ctx.Err() != nil { return }
+		if len(openPorts) == 0 { openPorts = resolved } // Fallback to IPs if no ports found
+
+		// ── PHASE 3: Surface Mapping & HTTP Probing ───────────────────────────
+		_ = models.UpdateScanTaskProgress(scanID, "running", 45)
+		emitLog(fmt.Sprintf("[VANTAGE] Phase 3a — HTTP Probing (%d targets) (Httpx)", len(openPorts)))
+		httpxArgs := append([]string{"httpx", "-json", "-silent", "-tech-detect", "-status-code"}, targetsToArgs("-u", openPorts)...)
+		liveURLs, _ := s.Executor.Collect(ctx, userID, "httpx", target, ifaceName, httpxArgs)
 		if ctx.Err() != nil { return }
 
+		emitLog("[VANTAGE] Phase 3b — TLS/SSL Analysis (TLSx)")
+		tlsArgs := append([]string{"tlsx", "-json", "-silent", "-san"}, targetsToArgs("-u", openPorts)...)
+		_, _ = s.Executor.Collect(ctx, userID, "tlsx", target, ifaceName, tlsArgs)
+		if ctx.Err() != nil { return }
+
+		// ── PHASE 4: Crawling & Spidering ─────────────────────────────────────
 		_ = models.UpdateScanTaskProgress(scanID, "running", 70)
-		emitLog(fmt.Sprintf("[VANTAGE] Phase 3 — Vulnerability Scanning (%d targets)", len(alive)))
-		for _, host := range alive {
-			if ctx.Err() != nil { break }
-			args := []string{"nuclei", "-u", host, "-json", "-silent"}
-			_ = s.Executor.Execute(ctx, userID, "nuclei", host, ifaceName, args)
+		if len(liveURLs) > 0 {
+			emitLog(fmt.Sprintf("[VANTAGE] Phase 4 — Crawling & Spidering (%d URLs) (Katana)", len(liveURLs)))
+			// Limit crawling to top 10 discovery URLs to avoid infinite loops in discovery mode
+			crawlTargets := liveURLs
+			if len(crawlTargets) > 10 { crawlTargets = crawlTargets[:10] }
+			for _, url := range crawlTargets {
+				if ctx.Err() != nil { break }
+				katanaArgs := []string{"katana", "-u", url, "-json", "-silent", "-jc", "-d", "2"}
+				_, _ = s.Executor.Collect(ctx, userID, "katana", target, ifaceName, katanaArgs)
+			}
 		}
-		emitLog("[VANTAGE] ═══ DISCOVERY COMPLETE ════════")
+
+		// ── PHASE 5: Vulnerability Scanning ───────────────────────────────────
+		_ = models.UpdateScanTaskProgress(scanID, "running", 85)
+		vulnTargets := deduplicateTargets(append(liveURLs, resolved...))
+		emitLog(fmt.Sprintf("[VANTAGE] Phase 5 — Vulnerability Scanning (%d targets) (Nuclei)", len(vulnTargets)))
+		// We process nuclei one by one to better track progress and avoid massive CLI arg lists
+		for i, vTarget := range vulnTargets {
+			if ctx.Err() != nil { break }
+			prog := 85 + (i * 14 / len(vulnTargets))
+			_ = models.UpdateScanTaskProgress(scanID, "running", prog)
+			nucleiArgs := []string{"nuclei", "-u", vTarget, "-json", "-silent"}
+			_ = s.Executor.Execute(ctx, userID, "nuclei", vTarget, ifaceName, nucleiArgs)
+		}
+
+		emitLog("[VANTAGE] ═══ DISCOVERY PIPELINE COMPLETE ════════════════")
 	}()
 	return nil
 }

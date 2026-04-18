@@ -18,7 +18,7 @@ RUN gulp
 # ========================================================================================
 # STAGE 2: ProjectDiscovery Tools Builder
 # ========================================================================================
-FROM golang:1.24-bookworm AS pd-tools-builder
+FROM golang:1.25-bookworm AS pd-tools-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpcap-dev libdumbnet-dev gcc g++ make && \
     rm -rf /var/lib/apt/lists/*
@@ -35,7 +35,7 @@ RUN set -eux; \
 # ========================================================================================
 # STAGE 3: Gophish/Vantage Backend Builder
 # ========================================================================================
-FROM golang:1.24-bookworm AS app-builder
+FROM golang:1.25-bookworm AS app-builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
