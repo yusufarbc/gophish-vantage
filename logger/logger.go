@@ -1,19 +1,15 @@
 package logger
 
 import (
-	"errors"
+	"context"
 	"io"
+	"log/slog"
 	"os"
-
-	"github.com/sirupsen/logrus"
+	"strings"
 )
 
-// Logger is the main logger that is abstracted in this package.
-// It is exported here for use with gorm.
-var Logger *logrus.Logger
-
-// ErrInvalidLevel is returned when an invalid log level is given in the config
-var ErrInvalidLevel = errors.New("invalid log level")
+// Logger is the global structured logger using log/slog.
+var Logger *slog.Logger
 
 // Config represents configuration details for logging.
 type Config struct {
@@ -22,91 +18,123 @@ type Config struct {
 }
 
 func init() {
-	Logger = logrus.New()
-	Logger.Formatter = &logrus.TextFormatter{DisableColors: true}
+	// Default logger
+	Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
 }
 
 // Setup configures the logger based on options in the config.json.
 func Setup(config *Config) error {
-	var err error
-	// Set up logging level
-	level := logrus.InfoLevel
-	if config.Level != "" {
-		level, err = logrus.ParseLevel(config.Level)
+	var level slog.Level
+	switch strings.ToLower(config.Level) {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		level = slog.LevelInfo
+	}
+
+	var out io.Writer = os.Stderr
+	if config.Filename != "" {
+		f, err := os.OpenFile(config.Filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 		if err != nil {
 			return err
 		}
+		out = io.MultiWriter(os.Stderr, f)
 	}
-	Logger.SetLevel(level)
-	// Set up logging to a file if specified in the config
-	logFile := config.Filename
-	if logFile != "" {
-		f, err := os.OpenFile(logFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-		if err != nil {
-			return err
-		}
-		mw := io.MultiWriter(os.Stderr, f)
-		Logger.Out = mw
-	}
+
+	// Use JSON handler for production logging if needed, but sticking to Text for now
+	// as per Gophish style, just structured.
+	handler := slog.NewTextHandler(out, &slog.HandlerOptions{
+		Level: level,
+	})
+
+	Logger = slog.New(handler)
+	slog.SetDefault(Logger) // Set as global default as well
+
 	return nil
 }
 
-// Debug logs a debug message
-func Debug(args ...interface{}) {
-	Logger.Debug(args...)
+// Helper methods to maintain compatibility with existing code calling logger.Info, etc.
+
+func Debug(msg string, args ...any) {
+	Logger.Debug(msg, args...)
 }
 
-// Debugf logs a formatted debug messsage
-func Debugf(format string, args ...interface{}) {
-	Logger.Debugf(format, args...)
+func Info(msg string, args ...any) {
+	Logger.Info(msg, args...)
 }
 
-// Info logs an informational message
-func Info(args ...interface{}) {
-	Logger.Info(args...)
+func Warn(msg string, args ...any) {
+	Logger.Warn(msg, args...)
 }
 
-// Infof logs a formatted informational message
-func Infof(format string, args ...interface{}) {
-	Logger.Infof(format, args...)
+func Error(msg string, args ...any) {
+	Logger.Error(msg, args...)
 }
 
-// Error logs an error message
-func Error(args ...interface{}) {
-	Logger.Error(args...)
+func Fatal(msg string, args ...any) {
+	Logger.Error(msg, args...)
+	os.Exit(1)
 }
 
-// Errorf logs a formatted error message
-func Errorf(format string, args ...interface{}) {
-	Logger.Errorf(format, args...)
+// Formatting helpers (legacy support)
+
+func Debugf(format string, args ...any) {
+	Logger.Debug(strings.TrimSpace(slog.LevelDebug.String()) + ": " + format, args...)
 }
 
-// Warn logs a warning message
-func Warn(args ...interface{}) {
-	Logger.Warn(args...)
+func Infof(format string, args ...any) {
+	Logger.Info(strings.TrimSpace(slog.LevelInfo.String()) + ": " + format, args...)
 }
 
-// Warnf logs a formatted warning message
-func Warnf(format string, args ...interface{}) {
-	Logger.Warnf(format, args...)
+func Warnf(format string, args ...any) {
+	Logger.Warn(strings.TrimSpace(slog.LevelWarn.String()) + ": " + format, args...)
 }
 
-// Fatal logs a fatal error message
-func Fatal(args ...interface{}) {
-	Logger.Fatal(args...)
+func Errorf(format string, args ...any) {
+	Logger.Error(strings.TrimSpace(slog.LevelError.String()) + ": " + format, args...)
 }
 
-// Fatalf logs a formatted fatal error message
-func Fatalf(format string, args ...interface{}) {
-	Logger.Fatalf(format, args...)
+func Fatalf(format string, args ...any) {
+	Logger.Error(strings.TrimSpace(slog.LevelError.String()) + ": " + format, args...)
+	os.Exit(1)
 }
 
-// WithFields returns a new log enty with the provided fields
-func WithFields(fields logrus.Fields) *logrus.Entry {
-	return Logger.WithFields(fields)
+// With returns a logger with context (for task-specific logging)
+func With(args ...any) *slog.Logger {
+	return Logger.With(args...)
 }
 
-// Writer returns the current logging writer
-func Writer() *io.PipeWriter {
-	return Logger.Writer()
+func WithContext(ctx context.Context) *slog.Logger {
+	return Logger // Could be enhanced to pull trace IDs from context
+}
+
+// GormLogger implements the gorm.Logger interface using slog.
+type GormLogger struct{}
+
+func (g GormLogger) Print(v ...interface{}) {
+	if len(v) < 2 {
+		return
+	}
+	level := v[0]
+	if level == "sql" {
+		// Log SQL queries at debug level
+		Logger.Debug("SQL Query",
+			"duration", v[2],
+			"query", v[3],
+			"values", v[4],
+			"rows", v[5],
+		)
+	} else if level == "log" {
+		Logger.Info("GORM Log", "data", v[2])
+	} else {
+		Logger.Info("GORM", "data", v)
+	}
 }

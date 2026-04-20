@@ -1,36 +1,46 @@
 {{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <div class="row">
-        <h1 class="page-header">
-            Email Templates
-        </h1>
-    </div>
-    <div id="flashes" class="row"></div>
-    <div class="row">
-        <button type="button" class="btn btn-primary" onclick="edit(-1)" data-toggle="modal" data-backdrop="static"
-            data-target="#modal"><i class="fa fa-plus"></i> New Template</button>
-    </div>
-    &nbsp;
-    <div id="loading">
-        <i class="fa fa-spinner fa-spin fa-4x"></i>
-    </div>
-    <div id="emptyMessage" class="row" style="display:none;">
-        <div class="alert alert-info">
-            No templates yet. Let's create one!
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                Email Templates
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Manage and customize your email communication templates</p>
         </div>
+        <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-8 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 flex items-center gap-3 uppercase tracking-widest" data-toggle="modal" data-backdrop="static" data-target="#modal" onclick="edit(-1)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Template
+        </button>
     </div>
-    <div class="row">
-        <table id="templateTable" class="table" style="display:none;">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Modified Date</th>
-                    <th class="col-md-2 no-sort"></th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+
+    <div id="flashes" class="row"></div>
+
+    <!-- Main Content Area -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30">
+            <div id="loading" class="flex justify-center p-12">
+                <i class="fa fa-spinner fa-spin fa-3x text-vantage-accent opacity-50"></i>
+            </div>
+            <div id="emptyMessage" class="row" style="display:none;">
+                <div class="alert alert-info">
+                    No templates yet. Let's create one!
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="templateTable" class="w-full text-left text-lg" style="display:none;">
+                    <thead>
+                        <tr class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm border-b border-vantage-border">
+                            <th class="px-8 py-5">Name</th>
+                            <th class="px-8 py-5">Modified Date</th>
+                            <th class="px-8 py-5 text-right no-sort"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-vantage-border">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 <!-- Modal -->

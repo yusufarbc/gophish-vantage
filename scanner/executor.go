@@ -52,26 +52,32 @@ func (e *DefaultExecutor) Execute(ctx context.Context, userID int64, toolName, t
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// ── Stdout: OOM-safe line streaming ──────────────────────────────────────
-	// Uses bufio.Scanner with a 1MB line buffer. This is the ONLY safe way to
-	// handle nuclei's massive JSONL outputs. json.NewDecoder is NOT used here
-	// because it buffers aggressively and can cause OOM on large result sets.
+	// ── Stdout: OOM-safe JSONL streaming ──────────────────────────────────────
+	// Uses json.NewDecoder with a loop to parse line-by-line.
+	// This is the production standard for handling large JSONL streams from tools
+	// like Nuclei and Naabu without loading the entire stream into RAM.
 	go func() {
 		defer wg.Done()
-		sc := bufio.NewScanner(stdout)
-		sc.Buffer(make([]byte, 1024*1024), 1024*1024) // 1MB per line — nuclei safe
-		for sc.Scan() {
-			line := sc.Text()
+		dec := json.NewDecoder(stdout)
+		for {
+			var raw json.RawMessage
+			if err := dec.Decode(&raw); err != nil {
+				if err == io.EOF {
+					break
+				}
+				// Skip non-json noise or parsing errors
+				continue
+			}
+			line := string(raw)
 			if strings.TrimSpace(line) == "" {
 				continue
 			}
+
+			// Extract tool name for logging (safely)
 			emitLog(fmt.Sprintf("[%s] %s", strings.ToUpper(toolName), line))
 			if e.Persister != nil {
 				_ = e.Persister.PersistFinding(userID, toolName, target, ifaceName, line)
 			}
-		}
-		if err := sc.Err(); err != nil && err != io.EOF {
-			emitLog(fmt.Sprintf("[%s:stdout] scanner error: %v", strings.ToUpper(toolName), err))
 		}
 	}()
 
@@ -137,25 +143,31 @@ func (e *DefaultExecutor) Collect(ctx context.Context, userID int64, parseAs, ta
 	wg.Add(2)
 
 	// ── Stdout: OOM-safe JSONL parsing for target extraction ─────────────────
-	// We use bufio.Scanner here (not json.NewDecoder) to ensure we never buffer
-	// the entire stream. Each line is individually parsed from a 1MB byte buffer.
+	// We use json.NewDecoder here to ensure we never buffer the entire stream.
+	// Each line is individually decoded and processed.
 	go func() {
 		defer wg.Done()
 
 		tool, toolFound := DefaultRegistry.Get(parseAs)
+		dec := json.NewDecoder(stdout)
 
-		sc := bufio.NewScanner(stdout)
-		sc.Buffer(make([]byte, 1024*1024), 1024*1024) // 1MB per line — OOM safe
-		for sc.Scan() {
-			line := sc.Text()
+		for {
+			var raw json.RawMessage
+			if err := dec.Decode(&raw); err != nil {
+				if err == io.EOF {
+					break
+				}
+				continue // Skip non-json noise
+			}
+			line := string(raw)
 			if strings.TrimSpace(line) == "" {
 				continue
 			}
 			emitLog(fmt.Sprintf("[%s] %s", strings.ToUpper(parseAs), line))
 
 			var obj map[string]interface{}
-			if err := json.Unmarshal([]byte(line), &obj); err != nil {
-				continue // Skip malformed JSON lines silently
+			if err := json.Unmarshal(raw, &obj); err != nil {
+				continue // Skip malformed JSON lines
 			}
 
 			// Extract the target string using the registered tool's logic
@@ -176,9 +188,6 @@ func (e *DefaultExecutor) Collect(ctx context.Context, userID int64, parseAs, ta
 					_ = e.Persister.PersistFinding(userID, parseAs, target, ifaceName, line)
 				}
 			}
-		}
-		if err := sc.Err(); err != nil && err != io.EOF {
-			emitLog(fmt.Sprintf("[%s:stdout] collector scanner error: %v", strings.ToUpper(parseAs), err))
 		}
 	}()
 

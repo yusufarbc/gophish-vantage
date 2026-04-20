@@ -3,22 +3,22 @@
     <!-- Header Decor -->
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-vantage-accent/50 via-vantage-accent to-vantage-accent/50 opacity-20"></div>
 
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-vantage-accent/10 flex items-center justify-center border border-vantage-accent/20">
-                <svg class="w-4 h-4 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-vantage-accent/10 flex items-center justify-center border border-vantage-accent/20">
+                <svg class="w-5 h-5 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-            <h3 class="text-sm font-black uppercase tracking-widest text-white/90">Scan Tasks</h3>
+            <h3 class="text-lg font-black uppercase tracking-widest text-vantage-text italic">Scan Missions</h3>
         </div>
-        <button onclick="openTaskModal()" class="group bg-vantage-accent hover:bg-vantage-accent/90 text-gray-900 font-bold px-5 py-2 rounded-xl text-xs transition-all active:scale-95 shadow-lg shadow-vantage-accent/20 flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
-            New Task
+        <button onclick="openTaskModal()" class="group bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-vantage-accent/20 flex items-center gap-3">
+            <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+            Initiate Scan
         </button>
     </div>
 
     <div class="overflow-x-auto custom-scrollbar">
-        <table class="w-full text-left text-xs border-separate border-spacing-y-2">
-            <thead class="text-gray-500 font-black uppercase tracking-widest text-[10px]">
+        <table class="w-full text-left text-sm border-separate border-spacing-y-2">
+            <thead class="text-vantage-text-dim font-black uppercase tracking-widest text-xs">
                 <tr>
                     <th class="px-4 py-1">Mission</th>
                     <th class="px-4 py-1 text-center">Engine Status</th>
@@ -53,22 +53,22 @@
 
                 <!-- Real Content Holder (populated by app.js) -->
                 <tr id="empty-tasks-row" x-show="!loading" class="transition-opacity duration-500">
-                    <td colspan="5" class="px-4 py-20 text-center bg-white/[0.02] rounded-2xl border border-dashed border-vantage-border/50">
-                        <div class="flex flex-col items-center justify-center space-y-5">
+                    <td colspan="5" class="px-4 py-24 text-center bg-white/[0.02] rounded-2xl border border-dashed border-vantage-border/50">
+                        <div class="flex flex-col items-center justify-center space-y-6">
                             <div class="relative">
-                                <div class="absolute inset-0 bg-vantage-accent/20 blur-2xl rounded-full"></div>
-                                <svg class="relative w-16 h-16 text-vantage-border group-hover:text-vantage-accent/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="absolute inset-0 bg-vantage-accent/20 blur-3xl rounded-full"></div>
+                                <svg class="relative w-24 h-24 text-vantage-border/40 group-hover:text-vantage-accent/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <div class="space-y-1">
-                                <p class="text-sm font-bold text-gray-400">Tactical Silence</p>
-                                <p class="text-xs text-gray-600">No active scan operations detected in the current sector.</p>
+                            <div class="space-y-2">
+                                <p class="text-xl font-black text-vantage-text-dim italic">Tactical Silence</p>
+                                <p class="text-base text-vantage-text-dim/60 font-medium">No active scan operations detected in the current sector.</p>
                             </div>
-                            <button onclick="openTaskModal()" class="text-[10px] font-black uppercase tracking-tighter text-vantage-accent hover:text-white transition-colors border-b border-vantage-accent/30 flex items-center gap-1">
+                            <button onclick="openTaskModal()" class="text-xs font-black uppercase tracking-widest text-vantage-accent hover:text-vantage-text transition-all border-b-2 border-vantage-accent/30 hover:border-vantage-accent flex items-center gap-2 py-1">
                                 Initiate Primary Protocol
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
                     </td>

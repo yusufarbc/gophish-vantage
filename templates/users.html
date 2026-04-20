@@ -1,87 +1,113 @@
-{{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <div class="row">
-        <h1 class="page-header">
-            {{.Title}}
-        </h1>
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                {{.Title}}
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Manage operational access and tactical personnel</p>
+        </div>
+        <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-8 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 flex items-center gap-3 uppercase tracking-widest" id="new_button" data-toggle="modal" data-backdrop="static"
+            data-user-id="-1" data-target="#modal">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New User
+        </button>
     </div>
+
     <div id="flashes" class="row">
         {{template "flashes" .Flashes}}
     </div>
-    <div class="row">
-        <button type="button" class="btn btn-primary" id="new_button" data-toggle="modal" data-backdrop="static"
-            data-user-id="-1" data-target="#modal">
-            <i class="fa fa-plus"></i> New User</button>
-    </div>
-    &nbsp;
-    <div id="loading">
-        <i class="fa fa-spinner fa-spin fa-4x"></i>
-    </div>
-    <div class="row">
-        <table id="userTable" class="table" style="display:none;">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Last Login</th>
-                    <th class="col-md-2 no-sort"></th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+
+    <!-- Main Content Card -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30">
+            <div id="loading" class="flex justify-center p-12">
+                <i class="fa fa-spinner fa-spin fa-3x text-vantage-accent opacity-50"></i>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table id="userTable" class="w-full text-left text-lg" style="display:none;">
+                    <thead>
+                        <tr class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm border-b border-vantage-border">
+                            <th class="px-8 py-5">Username</th>
+                            <th class="px-8 py-5">Role</th>
+                            <th class="px-8 py-5">Last Activity</th>
+                            <th class="px-8 py-5 text-right no-sort">Operational Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-vantage-border">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-<!-- Modal -->
+<!-- Modal Modernization -->
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title" id="userModalLabel">New User</h4>
-            </div>
-            <div class="modal-body" id="modal_body">
-                <div class="row" id="modal.flashes"></div>
-                <label class="control-label" for="username">Username:</label>
-                <div class="form-group">
-                    <input type="text" class="form-control" placeholder="Username" id="username" autofocus />
-                </div>
-                <label class="control-label" for="password">Password:</label>
-                <div class="form-group">
-                    <input type="password" class="form-control" autocomplete="new-password" placeholder="Password" id="password" required />
-                    <div class="hidden" id="password-strength-container">
-                        <div class="progress" id="password-strength">
-                            <div id="password-strength-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <span id="password-strength-description"></span>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content glass-card rounded-2xl border border-vantage-border shadow-2xl p-0 overflow-hidden bg-vantage-panel">
+            <div class="modal-header border-b border-vantage-border/30 p-8 flex items-center justify-between bg-vantage-sidebar/30">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-vantage-accent/10 border border-vantage-accent/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-black text-vantage-text tracking-tighter italic uppercase" id="userModalLabel">Personnel Entry</h4>
+                        <p class="text-sm text-vantage-text-dim mt-1 font-black uppercase tracking-widest opacity-60">Provision tactical sector credentials</p>
                     </div>
                 </div>
-                <label class="control-label" for="confirm_password">Confirm Password:</label>
-                <div class="form-group">
-                    <input type="password" class="form-control" placeholder="Confirm Password" id="confirm_password"
-                        required />
+                <button type="button" class="text-vantage-text-dim hover:text-vantage-text transition-colors text-3xl p-2" data-dismiss="modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body p-8 space-y-8" id="modal_body">
+                <div id="modal.flashes"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="username">Strategic ID</label>
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" placeholder="Username" id="username" autofocus />
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="role">Operational Authorization</label>
+                        <select class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all cursor-pointer" id="role">
+                            <option value="admin">Administrator / Overseer</option>
+                            <option value="user">Tactical Operator</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="checkbox checkbox-primary">
-                    <input id="force_password_change_checkbox" type="checkbox" checked>
-                    <label for="force_password_change_checkbox">Require the user to set a new password</label>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="password">Security Key</label>
+                        <input type="password" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" autocomplete="new-password" placeholder="Password" id="password" required />
+                        <div class="hidden" id="password-strength-container">
+                            <div class="h-2 bg-vantage-border rounded-full overflow-hidden" id="password-strength">
+                                <div id="password-strength-bar" class="h-full transition-all duration-500" role="progressbar"></div>
+                            </div>
+                            <span id="password-strength-description" class="text-xs font-black uppercase tracking-widest mt-2 block"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="confirm_password">Validation Key</label>
+                        <input type="password" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" placeholder="Confirm Password" id="confirm_password" required />
+                    </div>
                 </div>
-                <div class="checkbox checkbox-primary">
-                    <input id="account_locked_checkbox" type="checkbox">
-                    <label for="account_locked_checkbox">Account Locked</label>
-                </div>
-                <label class="control-label" for="role">Role:</label>
-                <div class="form-group" id="role-select">
-                    <select class="form-control" placeholder="" id="role" />
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
-                    </select>
+
+                <div class="flex flex-col gap-4 bg-vantage-bg/30 p-6 rounded-2xl border border-vantage-border shadow-inner">
+                    <label class="flex items-center gap-4 text-base text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                        <input id="force_password_change_checkbox" type="checkbox" checked class="w-6 h-6 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 transition-all">
+                        <span class="font-bold tracking-tight">Require mandatory security key rotation on ingress</span>
+                    </label>
+                    <label class="flex items-center gap-4 text-base text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                        <input id="account_locked_checkbox" type="checkbox" class="w-6 h-6 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 transition-all">
+                        <span class="font-bold tracking-tight">Lock operational sector authorization</span>
+                    </label>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="modalSubmit">Save changes</button>
+            <div class="modal-footer p-8 border-t border-vantage-border/30 flex items-center justify-between bg-vantage-sidebar/30">
+                <button type="button" class="px-8 py-3 text-base font-black text-vantage-text-dim hover:text-vantage-text transition-all tracking-widest uppercase" data-dismiss="modal">Abort</button>
+                <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-10 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 uppercase tracking-widest" id="modalSubmit">Commence Ops</button>
             </div>
         </div>
     </div>

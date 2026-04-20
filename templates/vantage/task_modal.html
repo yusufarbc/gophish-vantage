@@ -11,45 +11,44 @@
                     <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xl font-bold text-white tracking-tight">Yeni Tarama Görevi</h4>
-                    <p class="text-xs text-gray-400 mt-0.5" id="modal-step-subtitle">Tarama parametrelerini ve hedefleri yapılandırın</p>
+                    <h4 class="text-2xl font-black text-vantage-text tracking-tighter italic uppercase">Mission Configuration</h4>
+                    <p class="text-sm text-vantage-text-dim/70 mt-1" id="modal-step-subtitle">Define operational parameters and tactical scope</p>
                 </div>
             </div>
             
             <!-- Step Progress Indicator -->
             <div class="flex items-center gap-2 mr-8">
-                <div id="step-dot-1" class="w-2 h-2 rounded-full bg-vantage-accent shadow-[0_0_8px_rgba(186,218,85,0.6)]"></div>
+                <div id="step-dot-1" class="w-2 h-2 rounded-full bg-vantage-accent shadow-[0_0_8px_var(--v-accent)]"></div>
                 <div class="w-4 h-px bg-vantage-border"></div>
-                <div id="step-dot-2" class="w-2 h-2 rounded-full bg-gray-700"></div>
+                <div id="step-dot-2" class="w-2 h-2 rounded-full bg-vantage-text-dim/20"></div>
                 <div class="w-4 h-px bg-vantage-border"></div>
-                <div id="step-dot-3" class="w-2 h-2 rounded-full bg-gray-700"></div>
+                <div id="step-dot-3" class="w-2 h-2 rounded-full bg-vantage-text-dim/20"></div>
             </div>
 
-            <button onclick="closeTaskModal()" class="text-gray-500 hover:text-white transition-colors p-2">&times;</button>
+            <button onclick="closeTaskModal()" class="text-vantage-text-dim hover:text-vantage-text transition-colors p-2 text-2xl">&times;</button>
         </div>
 
         <!-- Body -->
         <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
             
             <!-- Step 1: Target Selection -->
-            <div id="task-step-1" class="space-y-8 animate-slideInRight">
-                <div class="space-y-2">
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Görev Tanımı</label>
-                    <input id="task-name" type="text" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all placeholder:text-gray-600" placeholder="Örn: Dış Ağ Sızma Testi - Q2 2024">
+            <div id="task-step-1" class="space-y-10 animate-slideInRight">
+                <div class="space-y-4">
+                    <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Mission Identifier</label>
+                    <input id="task-name" type="text" class="w-full bg-vantage-bg/50 border border-vantage-border/50 rounded-xl px-6 py-5 text-lg focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/30 shadow-inner" placeholder="e.g. ALPHA-RECON-2024">
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-48">
-                    <div class="space-y-3">
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Kayıtlı Varlıklar</label>
-                        <select id="task-target-select" onchange="syncTargetInput()" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">-- Veritabanından Seç --</option>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-5">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Historical Assets</label>
+                        <select id="task-target-select" onchange="syncTargetInput()" class="w-full bg-vantage-bg/50 border border-vantage-border/50 rounded-xl px-6 py-5 text-lg focus:border-vantage-accent outline-none transition-all cursor-pointer shadow-inner">
+                            <option value="">-- Tactical Database --</option>
                         </select>
-                        <p class="text-[10px] text-gray-500">Asset Management modülünde tanımlı olan IP ve Domainler</p>
+                        <p class="text-sm text-vantage-text-dim/60 italic font-medium">Load identified assets from previous operational cycles.</p>
                     </div>
-                    <div class="relative h-full flex flex-col">
-                        <div class="absolute inset-y-0 -left-4 w-px bg-vantage-border/20 hidden md:block"></div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Manuel Hedef Girişi</label>
-                        <textarea id="task-target" class="flex-1 w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all font-mono resize-none placeholder:text-gray-700" placeholder="10.10.10.0/24&#10;target-company.com&#10;192.168.1.100"></textarea>
+                    <div class="space-y-5">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Direct Scope Input</label>
+                        <textarea id="task-target" class="w-full bg-vantage-bg/50 border border-vantage-border/50 rounded-xl px-6 py-5 text-lg focus:border-vantage-accent outline-none transition-all font-mono resize-none h-48 placeholder:text-vantage-text-dim/30 shadow-inner custom-scrollbar" placeholder="10.10.10.0/24&#10;target-company.com"></textarea>
                     </div>
                 </div>
             </div>
@@ -62,88 +61,88 @@
                             <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
                         <div>
-                            <span class="text-sm font-bold text-vantage-accent tracking-tight">Full Spectrum Scan (Tüm Spektrum)</span>
-                            <p class="text-[11px] text-gray-400 mt-0.5">ProjectDiscovery araçlarının tamamını optimize edilmiş parametrelerle devreye alır.</p>
+                            <span class="text-lg font-black text-vantage-accent tracking-widest uppercase">Full Spectrum Engagement</span>
+                            <p class="text-sm text-vantage-text-dim/70 mt-1 font-medium">Activate all ProjectDiscovery weaponry for comprehensive sectoral analysis.</p>
                         </div>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="full-spectrum-toggle" onchange="toggleFullSpectrum(this.checked)" class="sr-only peer">
-                        <div class="w-14 h-7 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-gray-400 after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vantage-accent peer-checked:after:bg-white peer-checked:shadow-[0_0_15px_rgba(186,218,85,0.4)]"></div>
+                        <div class="w-14 h-7 bg-vantage-text-dim/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-vantage-bg after:content-[''] after:absolute after:top-1 after:left-1 after:bg-vantage-text-dim/50 after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vantage-accent peer-checked:after:bg-vantage-bg peer-checked:shadow-[0_0_15px_var(--v-accent-glow)]"></div>
                     </label>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="tool-groups-container">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6" id="tool-groups-container">
                     <!-- Group 1: Recon -->
-                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Keşif (Recon)</span>
+                    <div class="bg-vantage-sidebar/20 border border-vantage-border/30 rounded-2xl p-6 space-y-4 shadow-inner">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                            <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Reconnaissance</span>
                         </div>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="subfinder" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="subfinder" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Subfinder</span>
                             </label>
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="katana" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="katana" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Katana</span>
                             </label>
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="dnsx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="dnsx" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Dnsx</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Group 2: Port -->
-                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Port & Servis</span>
+                    <div class="bg-vantage-sidebar/20 border border-vantage-border/30 rounded-2xl p-6 space-y-4 shadow-inner">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            <span class="text-xs font-black text-emerald-400 uppercase tracking-widest">Port & Service</span>
                         </div>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="naabu" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="naabu" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Naabu</span>
                             </label>
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="httpx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="httpx" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Httpx</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Group 3: Zafiyet -->
-                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                            <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Zafiyet</span>
+                    <div class="bg-vantage-sidebar/20 border border-vantage-border/30 rounded-2xl p-6 space-y-4 shadow-inner">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+                            <span class="text-xs font-black text-red-400 uppercase tracking-widest">Vulnerability</span>
                         </div>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="nuclei" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="nuclei" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Nuclei</span>
                             </label>
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="tlsx" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="tlsx" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Tlsx</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Group 4: OSINT -->
-                    <div class="bg-black/30 border border-vantage-border/30 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                            <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">OSINT</span>
+                    <div class="bg-vantage-sidebar/20 border border-vantage-border/30 rounded-2xl p-6 space-y-4 shadow-inner">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
+                            <span class="text-xs font-black text-purple-400 uppercase tracking-widest">Intelligence</span>
                         </div>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="uncover" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="uncover" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Uncover</span>
                             </label>
-                            <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group">
-                                <input type="checkbox" value="cloudlist" class="task-tool rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
+                            <label class="flex items-center gap-4 text-sm text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                                <input type="checkbox" value="cloudlist" class="task-tool rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 w-5 h-5 transition-all">
                                 <span>Cloudlist</span>
                             </label>
                         </div>
@@ -152,43 +151,46 @@
             </div>
 
             <!-- Step 3: Network & Finalize -->
-            <div id="task-step-3" class="hidden space-y-8 animate-slideInRight">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-3">
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Ağ Arayüzü (Network Interface)</label>
-                        <select id="task-interface" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all cursor-pointer">
-                            <option value="eth0">eth0 (Dış Ağ / Public)</option>
-                            <option value="tun0">tun0 (İç Ağ / VPN-Tunnel)</option>
+            <div id="task-step-3" class="hidden space-y-10 animate-slideInRight">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-5">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Network Interface</label>
+                        <select id="task-interface" class="w-full bg-vantage-bg/50 border border-vantage-border/50 rounded-xl px-6 py-5 text-lg focus:border-vantage-accent outline-none transition-all cursor-pointer shadow-inner">
+                            <option value="eth0">eth0 (External / Public)</option>
+                            <option value="tun0">tun0 (Internal / VPN-Tunnel)</option>
                         </select>
-                        <p class="text-[10px] text-gray-500">Taramanın hangi ağ bacağı üzerinden gerçekleştirileceği.</p>
+                        <p class="text-sm text-vantage-text-dim/60 italic font-medium">Define the ingress/egress vector for this operation.</p>
                     </div>
 
-                    <div class="space-y-4">
-                        <div class="space-y-3">
-                            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Planlanmış Zaman (Opsiyonel)</label>
-                            <input id="task-schedule" type="datetime-local" class="w-full bg-black/40 border border-vantage-border/50 rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all text-gray-400">
+                    <div class="space-y-6">
+                        <div class="space-y-5">
+                            <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Scheduled Execution (Optional)</label>
+                            <input id="task-schedule" type="datetime-local" class="w-full bg-vantage-bg/50 border border-vantage-border/50 rounded-xl px-6 py-5 text-lg focus:border-vantage-accent outline-none transition-all text-vantage-text/60 shadow-inner">
                         </div>
-                        <label class="flex items-center gap-3 text-xs text-gray-300 cursor-pointer hover:text-white transition-colors group p-1">
-                            <input id="task-parallel" type="checkbox" class="rounded border-vantage-border bg-black text-vantage-accent focus:ring-vantage-accent/30 w-4 h-4">
-                            <span>Araçları paralel olarak çalıştır</span>
+                        <label class="flex items-center gap-5 text-base text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group p-3 rounded-xl hover:bg-vantage-accent/5">
+                            <input id="task-parallel" type="checkbox" class="w-6 h-6 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 transition-all">
+                            <span>Execute tactical parameters in parallel</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="bg-vantage-accent/5 rounded-2xl border border-vantage-border/30 p-6 space-y-4">
-                    <h5 class="text-xs font-bold text-white uppercase tracking-wider border-b border-vantage-border/30 pb-3">Tarama Özeti</h5>
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Hedefler</span>
-                            <div id="summary-targets" class="text-xs text-gray-300 truncate">Hesaplanıyor...</div>
+                <div class="bg-vantage-accent/5 rounded-2xl border border-vantage-border/30 p-8 space-y-6 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h5 class="text-base font-black text-vantage-text uppercase tracking-widest border-b border-vantage-border/30 pb-4 italic">Mission Briefing Summary</h5>
+                    <div class="grid grid-cols-3 gap-10">
+                        <div class="space-y-3">
+                            <span class="text-sm text-vantage-text-dim uppercase font-black tracking-tighter">Sector Targets</span>
+                            <div id="summary-targets" class="text-base text-vantage-text font-bold truncate">Calculating...</div>
                         </div>
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Aktif Araçlar</span>
-                            <div id="summary-tools" class="text-xs text-gray-300">Seçilmedi</div>
+                        <div class="space-y-3">
+                            <span class="text-sm text-vantage-text-dim uppercase font-black tracking-tighter">Active Weaponry</span>
+                            <div id="summary-tools" class="text-base text-vantage-text font-bold">None Selected</div>
                         </div>
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Mod</span>
-                            <div id="summary-interface" class="text-xs text-gray-300 font-mono">eth0</div>
+                        <div class="space-y-3">
+                            <span class="text-sm text-vantage-text-dim uppercase font-black tracking-tighter">Engagement Vector</span>
+                            <div id="summary-interface" class="text-lg text-vantage-accent font-black font-mono">eth0</div>
                         </div>
                     </div>
                 </div>
@@ -198,19 +200,19 @@
 
         <!-- Footer / Navigation -->
         <div class="p-6 border-t border-vantage-border/30 bg-vantage-sidebar/30 flex items-center justify-between">
-            <button id="btn-back" onclick="prevStep()" class="hidden px-6 py-2.5 text-sm font-semibold rounded-xl bg-gray-800/50 hover:bg-gray-700 text-gray-400 transition-all flex items-center gap-2">
+            <button id="btn-back" onclick="prevStep()" class="hidden px-6 py-2.5 text-sm font-black rounded-xl bg-vantage-text-dim/10 hover:bg-vantage-text-dim/20 text-vantage-text-dim transition-all flex items-center gap-2 uppercase tracking-widest">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Geri
+                Back
             </button>
             <div class="flex-1"></div>
             <div class="flex items-center gap-3">
-                <button onclick="closeTaskModal()" class="px-6 py-2.5 text-sm font-semibold rounded-xl text-gray-500 hover:text-white transition-all">İptal</button>
-                <button id="btn-next" onclick="nextStep()" class="px-8 py-2.5 text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/10 transition-all flex items-center gap-2">
-                    Sonraki
+                <button onclick="closeTaskModal()" class="px-6 py-2.5 text-sm font-black rounded-xl text-vantage-text-dim hover:text-vantage-text transition-all uppercase tracking-widest">Abort</button>
+                <button id="btn-next" onclick="nextStep()" class="px-8 py-2.5 text-sm font-black rounded-xl bg-vantage-text hover:bg-vantage-text/90 text-vantage-bg shadow-xl shadow-vantage-text/5 transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95">
+                    Next
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
                 <button id="submit-task-btn" onclick="createTask()" class="hidden px-8 py-2.5 text-sm font-black rounded-xl bg-vantage-accent hover:bg-vantage-accent/90 text-gray-900 shadow-xl shadow-vantage-accent/20 transition-all active:scale-95 flex justify-center items-center gap-2">
-                    <span id="submit-task-text">Taramayı Başlat</span>
+                    <span id="submit-task-text">Initiate Scan</span>
                     <svg id="submit-task-spinner" class="animate-spin h-4 w-4 hidden" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -238,12 +240,12 @@ function updateModalUI() {
         const dot = document.getElementById('step-dot-' + i);
         if(i <= currentStep) {
             dot.classList.add('bg-vantage-accent');
-            dot.classList.add('shadow-[0_0_8px_rgba(186,218,85,0.6)]');
-            dot.classList.remove('bg-gray-700');
+            dot.classList.add('shadow-[0_0_8px_var(--v-accent)]');
+            dot.classList.remove('bg-vantage-text-dim/20');
         } else {
             dot.classList.remove('bg-vantage-accent');
-            dot.classList.remove('shadow-[0_0_8px_rgba(186,218,85,0.6)]');
-            dot.classList.add('bg-gray-700');
+            dot.classList.remove('shadow-[0_0_8px_var(--v-accent)]');
+            dot.classList.add('bg-vantage-text-dim/20');
         }
     }
     
@@ -257,17 +259,17 @@ function updateModalUI() {
         btnBack.classList.add('hidden');
         btnNext.classList.remove('hidden');
         btnSubmit.classList.add('hidden');
-        subtitle.innerText = "Hedef kapsamını ve görev adını belirleyin";
+        subtitle.innerText = "Define mission scope and tactical identifier";
     } else if(currentStep === 2) {
         btnBack.classList.remove('hidden');
         btnNext.classList.remove('hidden');
         btnSubmit.classList.add('hidden');
-        subtitle.innerText = "Kullanılacak güvenlik araçlarını seçin";
+        subtitle.innerText = "Select security tools for engagement";
     } else if(currentStep === 3) {
         btnBack.classList.remove('hidden');
         btnNext.classList.add('hidden');
         btnSubmit.classList.remove('hidden');
-        subtitle.innerText = "Ağ yapılandırması ve son kontrol";
+        subtitle.innerText = "Network configuration and final validation";
         updateSummary();
     }
 }
@@ -275,18 +277,18 @@ function updateModalUI() {
 function nextStep() {
     if(currentStep === 1) {
         if(!document.getElementById('task-name').value) {
-            alert('Lütfen bir görev adı girin.');
+            alert('Please enter a mission identifier.');
             return;
         }
         if(!document.getElementById('task-target').value) {
-            alert('Lütfen en az bir hedef belirtin.');
+            alert('Please specify at least one target.');
             return;
         }
     }
     if(currentStep === 2) {
         const checkedTools = document.querySelectorAll('.task-tool:checked');
         if(checkedTools.length === 0) {
-            alert('Lütfen en az bir araç seçin.');
+            alert('Please select at least one security tool.');
             return;
         }
     }
@@ -321,10 +323,10 @@ function syncTargetInput() {
 function updateSummary() {
     const targetVal = document.getElementById('task-target').value;
     const lines = targetVal.split('\n').filter(l => l.trim()).length;
-    document.getElementById('summary-targets').innerText = lines + " Hedef Belirlendi";
+    document.getElementById('summary-targets').innerText = lines + " Targets Identified";
     
     const checkedTools = document.querySelectorAll('.task-tool:checked');
-    document.getElementById('summary-tools').innerText = checkedTools.length + " Araç Aktif";
+    document.getElementById('summary-tools').innerText = checkedTools.length + " Tools Active";
     
     const iface = document.getElementById('task-interface').value;
     document.getElementById('summary-interface').innerText = iface;
@@ -337,7 +339,7 @@ function loadTargetsIntoSelect() {
         .then(data => {
             const select = document.getElementById('task-target-select');
             // Keep first option
-            select.innerHTML = '<option value="">-- Veritabanından Seç --</option>';
+            select.innerHTML = '<option value="">-- Select from Database --</option>';
             if(data.targets) {
                 data.targets.forEach(t => {
                     const opt = document.createElement('option');
@@ -373,11 +375,11 @@ function closeTaskModal() {
     background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--v-border);
     border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--v-text-dim);
 }
 
 @keyframes slideInRight {

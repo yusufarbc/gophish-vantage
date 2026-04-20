@@ -1,10 +1,18 @@
 {{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <div class="row">
-        <h1 class="page-header">Settings</h1>
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                Settings
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Manage your account and system configuration</p>
+        </div>
     </div>
+
     <div id="flashes" class="row"></div>
     {{template "flashes" .Flashes}}
+
     <!-- Nav tabs -->
     <ul class="nav nav-tabs" role="tablist">
         <li class="active" role="mainSettings"><a href="#mainSettings" aria-controls="mainSettings" role="tab"
@@ -14,6 +22,7 @@
         <li role="reportingSettings"><a href="#reportingSettings" aria-controls="reportingSettings" role="tab" id="reporttab"
             data-toggle="tab">Reporting Settings</a></li>
     </ul>
+
     <!-- Tab Panes -->
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="mainSettings">

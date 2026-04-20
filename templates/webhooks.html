@@ -1,72 +1,92 @@
-{{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <h1 class="page-header">
-        {{.Title}}
-    </h1>
-    <div id="flashes" class="row"></div>
-    <div class="row">
-        <button type="button" class="btn btn-primary" id="new_button" data-toggle="modal" data-backdrop="static"
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                {{.Title}}
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Provision tactical event integration triggers</p>
+        </div>
+        <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-8 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 flex items-center gap-3 uppercase tracking-widest" id="new_button" data-toggle="modal" data-backdrop="static"
             data-webhook-id="-1" data-target="#modal">
-            <i class="fa fa-plus"></i> New Webhook</button>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Webhook
+        </button>
     </div>
-    &nbsp;
-    <div id="loading">
-        <i class="fa fa-spinner fa-spin fa-4x"></i>
-    </div>
-    <div class="row">
-        <table id="webhookTable" class="table" style="display:none;">
-            <thead>
-                <tr>
-                    <th class="col-md-2 no-sort">Title</th>
-                    <th class="col-md-2 no-sort">Url</th>
-                    <th class="col-md-2 no-">Is active</th>
-                    <th class="col-md-2 no-sort"></th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+
+    <div id="flashes" class="row"></div>
+
+    <!-- Main Content Card -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30">
+            <div id="loading" class="flex justify-center p-12">
+                <i class="fa fa-spinner fa-spin fa-3x text-vantage-accent opacity-50"></i>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table id="webhookTable" class="w-full text-left text-lg" style="display:none;">
+                    <thead>
+                        <tr class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm border-b border-vantage-border">
+                            <th class="px-8 py-5">Operational Title</th>
+                            <th class="px-8 py-5">Endpoint Vector</th>
+                            <th class="px-8 py-5">Tactical State</th>
+                            <th class="px-8 py-5 text-right no-sort">Operational Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-vantage-border text-vantage-text">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Modernization -->
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title" id="webhookModalLabel">Add or Edit Webhook</h4>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content glass-card rounded-2xl border border-vantage-border shadow-2xl p-0 overflow-hidden bg-vantage-panel">
+            <div class="modal-header border-b border-vantage-border/30 p-8 flex items-center justify-between bg-vantage-sidebar/30">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-vantage-accent/10 border border-vantage-accent/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-black text-vantage-text tracking-tighter italic uppercase" id="webhookModalLabel">Integrator Protocol</h4>
+                        <p class="text-sm text-vantage-text-dim mt-1 font-black uppercase tracking-widest opacity-60">Authorize external mission event handlers</p>
+                    </div>
+                </div>
+                <button type="button" class="text-vantage-text-dim hover:text-vantage-text transition-colors text-3xl p-2" data-dismiss="modal" aria-label="Close">&times;</button>
             </div>
-            <div class="modal-body" id="modal_body">
-                <div class="row" id="modal.flashes"></div>
-                <label class="control-label" for="title">Name:</label>
-                <div class="form-group">
-                    <input type="text" class="form-control" placeholder="Name" id="name" required autofocus />
+            <div class="modal-body p-8 space-y-8" id="modal_body">
+                <div id="modal.flashes"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="name">Identifier Name</label>
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" placeholder="Name" id="name" required autofocus />
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="url">Endpoint URL</label>
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" placeholder="https://example.com/webhook" id="url" required />
+                    </div>
                 </div>
 
-                <label class="control-label" for="url">URL:</label>
-                <div class="form-group">
-                    <input type="text" class="form-control" placeholder="https://example.com/webhook1" id="url" required />
+                <div class="space-y-3">
+                    <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="secret">Tactical Secret Key</label>
+                    <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" placeholder="Secret Token" id="secret" required />
                 </div>
 
-                <label class="control-label" for="secret">Secret:</label>
-                <div class="form-group">
-                    <input type="text" class="form-control" placeholder="Secret" id="secret" required />
-                </div>
-
-                <div class="checkbox checkbox-primary">
-                    <input type="checkbox" id="is_active" value="true" />
-                    <label for="is_active">Is active <i class="fa fa-question-circle"
-                            data-toggle="tooltip" data-placement="right"
-                            title="Data is sent only to the active webhooks"></i>
+                <div class="bg-vantage-bg/30 p-6 rounded-2xl border border-vantage-border shadow-inner">
+                    <label class="flex items-center gap-4 text-base text-vantage-text-dim cursor-pointer hover:text-vantage-text transition-colors group">
+                        <input type="checkbox" id="is_active" value="true" class="w-6 h-6 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent/30 transition-all">
+                        <span class="font-bold tracking-tight">Activate real-time telemetry streaming to this endpoint</span>
                     </label>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="modalSubmit">Save changes</button>
+            <div class="modal-footer p-8 border-t border-vantage-border/30 flex items-center justify-between bg-vantage-sidebar/30">
+                <button type="button" class="px-8 py-3 text-base font-black text-vantage-text-dim hover:text-vantage-text transition-all tracking-widest uppercase" data-dismiss="modal">Abort</button>
+                <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-10 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 uppercase tracking-widest" id="modalSubmit">Deploy Webhook</button>
             </div>
         </div>
     </div>

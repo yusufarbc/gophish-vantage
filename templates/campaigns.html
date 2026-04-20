@@ -1,24 +1,38 @@
 {{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <div class="row">
-        <h1 class="page-header">
-            Campaigns
-        </h1>
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                Strategic Campaigns
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Deploy and monitor tactical email engagements</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="mail-queue-status" class="flex items-center gap-2 px-4 py-2 bg-vantage-sidebar/50 rounded-lg border border-vantage-border">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-xs font-black uppercase tracking-widest text-vantage-text-dim">Mail Queue: Active</span>
+            </div>
+            <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-8 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 flex items-center gap-3 uppercase tracking-widest" data-toggle="modal" data-backdrop="static" data-target="#modal" onclick="edit('new')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                New Campaign
+            </button>
+        </div>
     </div>
-    <div id="flashes" class="row"></div>
-    <div class="row">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-backdrop="static" data-target="#modal"
-            onclick="edit('new')">
-            <i class="fa fa-plus"></i> New Campaign</button>
-    </div>
-    &nbsp;
 
-    <ul class="nav nav-tabs" role="tablist">
-        <li class="active" role="activeCampaigns"><a href="#activeCampaigns" aria-controls="activeCampaigns" role="tab"
-                data-toggle="tab">Active Campaigns</a></li>
-        <li role="archivedCampaigns"><a href="#archivedCampaigns" aria-controls="archivedCampaigns" role="tab"
-                data-toggle="tab">Archived Campaigns</a></li>
-    </ul>
+    <div id="flashes" class="row"></div>
+
+    <!-- Main Content Area -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30">
+            <ul class="flex border-b border-vantage-border mb-8" role="tablist">
+                <li class="active" role="activeCampaigns">
+                    <a href="#activeCampaigns" aria-controls="activeCampaigns" role="tab" data-toggle="tab" class="px-8 py-4 text-sm font-black uppercase tracking-widest text-vantage-text border-b-2 border-vantage-accent block">Active Engagements</a>
+                </li>
+                <li role="archivedCampaigns">
+                    <a href="#archivedCampaigns" aria-controls="archivedCampaigns" role="tab" data-toggle="tab" class="px-8 py-4 text-sm font-black uppercase tracking-widest text-vantage-text-dim hover:text-vantage-text block transition-colors">Archived Sector Data</a>
+                </li>
+            </ul>
     </br>
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="activeCampaigns">

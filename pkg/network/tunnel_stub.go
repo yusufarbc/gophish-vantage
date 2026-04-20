@@ -12,7 +12,7 @@ type TunnelManager struct{}
 
 func GlobalTunnelManager() *TunnelManager { return &TunnelManager{} }
 
-func (tm *TunnelManager) Configure(port, secret string) {}
+func (tm *TunnelManager) Configure(port, secret, subnet string) {}
 
 func (tm *TunnelManager) Start() error {
 	return fmt.Errorf("reverse tunnel is only supported on Linux")

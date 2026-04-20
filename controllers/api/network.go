@@ -29,6 +29,13 @@ type RouteRequest struct {
 	Interface string `json:"interface"`
 }
 
+// StartTunnelRequest is the JSON body for POST /api/v1/tunnel/start
+type StartTunnelRequest struct {
+	Port         string `json:"port,omitempty"`
+	Secret       string `json:"secret,omitempty"`
+	TargetSubnet string `json:"target_subnet,omitempty"`
+}
+
 // ── Handlers ───────────────────────────────────────────────────────────────────
 
 // ListInterfaces returns all active network interfaces on the host.
@@ -73,7 +80,17 @@ func (as *Server) TunnelStatus(w http.ResponseWriter, r *http.Request) {
 // POST /api/v1/tunnel/start
 // Idempotent: returns 200 if already running.
 func (as *Server) StartTunnelServer(w http.ResponseWriter, r *http.Request) {
+	var req StartTunnelRequest
+	if r.ContentLength > 0 {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			JSONResponse(w, models.Response{Success: false, Message: "invalid JSON body"}, http.StatusBadRequest)
+			return
+		}
+	}
+
 	mgr := network.GlobalTunnelManager()
+	mgr.Configure(req.Port, req.Secret, req.TargetSubnet)
+
 	if err := mgr.Start(); err != nil {
 		JSONResponse(w, models.Response{Success: false, Message: "failed to start tunnel server: " + err.Error()}, http.StatusInternalServerError)
 		return

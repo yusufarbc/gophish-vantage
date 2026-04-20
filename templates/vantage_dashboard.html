@@ -15,29 +15,29 @@
                 <!-- Results Tab -->
                 <div id="tab-results" class="tab-content hidden p-8 space-y-4">
                     <div class="glass-card rounded-lg border border-vantage-border overflow-hidden">
-                        <div class="bg-black/30 px-6 py-4 border-b border-vantage-border flex gap-2">
-                            <button onclick="filterFindings('')" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-medium">All</button>
-                            <button onclick="filterFindings('critical')" class="px-3 py-1 badge-critical rounded text-xs font-medium">Critical</button>
-                            <button onclick="filterFindings('high')" class="px-3 py-1 badge-high rounded text-xs font-medium">High</button>
-                            <button onclick="filterFindings('medium')" class="px-3 py-1 badge-medium rounded text-xs font-medium">Medium</button>
-                            <button onclick="filterFindings('low')" class="px-3 py-1 badge-low rounded text-xs font-medium">Low</button>
+                        <div class="bg-vantage-sidebar/50 px-8 py-5 border-b border-vantage-border flex flex-wrap gap-4">
+                            <button onclick="filterFindings('')" class="px-6 py-2.5 bg-vantage-card border border-vantage-border hover:bg-white/5 rounded-xl text-base font-bold transition-all">All Operations</button>
+                            <button onclick="filterFindings('critical')" class="px-6 py-2.5 badge-critical rounded-xl text-base font-bold transition-all">Critical Risks</button>
+                            <button onclick="filterFindings('high')" class="px-6 py-2.5 badge-high rounded-xl text-base font-bold transition-all">High Priority</button>
+                            <button onclick="filterFindings('medium')" class="px-6 py-2.5 badge-medium rounded-xl text-base font-bold transition-all">Medium Risk</button>
+                            <button onclick="filterFindings('low')" class="px-6 py-2.5 badge-low rounded-xl text-base font-bold transition-all">Informational</button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-900/50 text-gray-400 font-semibold sticky top-0 border-b border-vantage-border">
+                            <table class="w-full text-left text-base">
+                                <thead class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm sticky top-0 border-b border-vantage-border">
                                     <tr>
-                                        <th class="px-6 py-3">Severity</th>
-                                        <th class="px-6 py-3">Tool</th>
-                                        <th class="px-6 py-3">Interface</th>
-                                        <th class="px-6 py-3">Finding</th>
-                                        <th class="px-6 py-3">Target</th>
-                                        <th class="px-6 py-3">Details</th>
-                                        <th class="px-6 py-3">Date</th>
+                                        <th class="px-8 py-5">Severity</th>
+                                        <th class="px-8 py-5">Tool</th>
+                                        <th class="px-8 py-5">Interface</th>
+                                        <th class="px-8 py-5">Finding</th>
+                                        <th class="px-8 py-5">Target</th>
+                                        <th class="px-8 py-5">Details</th>
+                                        <th class="px-8 py-5">Date</th>
                                     </tr>
                                 </thead>
-                                <tbody id="findings-tbody" class="divide-y divide-gray-800">
-                                    <tr class="hover:bg-gray-900/30">
-                                        <td class="px-6 py-3" colspan="7" class="text-center text-gray-500 py-8">No findings yet. Start a scan to populate.</td>
+                                <tbody id="findings-tbody" class="divide-y divide-vantage-border">
+                                    <tr class="hover:bg-vantage-accent/5">
+                                        <td class="px-6 py-3" colspan="7" class="text-center text-vantage-text-dim py-8">No findings yet. Start a scan to populate.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -47,45 +47,57 @@
 
                 <!-- Vulnerabilities Tab -->
                 <div id="tab-vulnerabilities" class="tab-content hidden p-8 space-y-4">
-                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <h3 class="text-lg font-bold mb-2">Vulnerabilities (Global)</h3>
-                        <p class="text-sm text-gray-400">Global issue database mirrors discovered CVE/template results.</p>
-                        <div class="mt-4 text-sm text-gray-300" id="vuln-global-summary">Loading vulnerability corpus...</div>
+                    <div class="glass-card p-8 rounded-2xl border border-vantage-border shadow-2xl">
+                        <h3 class="text-xl font-black uppercase tracking-widest text-vantage-text italic mb-4">Vulnerability Intelligence</h3>
+                        <p class="text-base text-vantage-text-dim/80">Global issue database mirrors discovered CVE/template results across active operational sectors.</p>
+                        <div class="mt-6 p-6 bg-vantage-bg/50 rounded-xl border border-vantage-border text-sm font-mono text-vantage-text" id="vuln-global-summary">Loading vulnerability corpus...</div>
                     </div>
                 </div>
 
                 <!-- Hosts Tab -->
-                <div id="tab-hosts" class="tab-content hidden p-8 space-y-6">
-                    <div class="glass-card p-6 rounded-lg border border-vantage-border space-y-4">
-                        <h3 class="text-lg font-bold">Target Asset Management</h3>
-                        <p class="text-sm text-gray-400">IP, CIDR, domain list, or organization names. One per line or comma-separated.</p>
-                        <textarea id="targets-input" rows="4" class="w-full bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent" placeholder="192.168.1.0/24&#10;example.com&#10;acme corp"></textarea>
-                        <div class="flex gap-3">
-                            <select id="targets-scope" class="bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm">
-                                <option value="">All</option>
-                                <option value="internal">Internal</option>
-                                <option value="external">External</option>
+                <div id="tab-hosts" class="tab-content hidden p-8 space-y-8">
+                    <div class="glass-card p-8 rounded-2xl border border-vantage-border/50 space-y-6 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-2xl font-black uppercase tracking-widest text-vantage-text italic">Target Asset Management</h3>
+                            <p class="text-lg text-vantage-text-dim/80">IP, CIDR, domain list, or organization names. One per line or comma-separated.</p>
+                        </div>
+                        <textarea id="targets-input" rows="5" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-5 text-lg outline-none focus:border-vantage-accent transition-all custom-scrollbar" placeholder="192.168.1.0/24&#10;example.com&#10;acme corp"></textarea>
+                        <div class="flex flex-wrap gap-6">
+                            <select id="targets-scope" class="bg-vantage-bg border border-vantage-border rounded-xl px-8 py-4 text-lg outline-none focus:border-vantage-accent cursor-pointer transition-colors">
+                                <option value="">Global Scope (All)</option>
+                                <option value="internal">Internal Assets</option>
+                                <option value="external">External Assets</option>
                             </select>
-                            <input id="targets-search" type="text" placeholder="Search target..." class="flex-1 bg-vantage-bg border border-vantage-border rounded px-4 py-2 text-sm outline-none focus:border-vantage-accent">
-                            <button onclick="importTargets()" class="bg-vantage-accent hover:bg-green-700 text-white font-bold px-4 py-2 rounded">Import</button>
-                            <button onclick="loadTargets()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded">Refresh</button>
+                            <div class="flex-1 relative group">
+                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-vantage-text-dim group-focus-within:text-vantage-accent transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </span>
+                                <input id="targets-search" type="text" placeholder="Filter managed targets..." class="w-full bg-vantage-bg border border-vantage-border rounded-xl pl-14 pr-8 py-4 text-lg outline-none focus:border-vantage-accent transition-all">
+                            </div>
+                            <div class="flex gap-4">
+                                <button onclick="importTargets()" class="bg-vantage-accent hover:bg-vantage-accent/80 text-slate-900 font-black px-10 py-4 rounded-xl text-base transition-all active:scale-95 shadow-lg shadow-vantage-accent/20">Import Assets</button>
+                                <button onclick="loadTargets()" class="bg-vantage-card border border-vantage-border hover:bg-white/5 text-vantage-text font-bold px-8 py-4 rounded-xl text-base transition-all active:scale-95">Refresh</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="glass-card rounded-lg border border-vantage-border overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-900/50 text-gray-400 font-semibold border-b border-vantage-border">
+                    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+                        <table class="w-full text-left text-lg">
+                            <thead class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm border-b border-vantage-border">
                                 <tr>
-                                    <th class="px-6 py-3">Target</th>
-                                    <th class="px-6 py-3">Type</th>
-                                    <th class="px-6 py-3">Scope</th>
-                                    <th class="px-6 py-3">Tag</th>
-                                    <th class="px-6 py-3">Last Scanned</th>
-                                    <th class="px-6 py-3">Live/Down</th>
-                                    <th class="px-6 py-3">OS</th>
+                                    <th class="px-10 py-6">Identified Asset</th>
+                                    <th class="px-10 py-6">Type</th>
+                                    <th class="px-10 py-6">Operational Scope</th>
+                                    <th class="px-10 py-6">Tags</th>
+                                    <th class="px-10 py-6">Last Activity</th>
+                                    <th class="px-10 py-6 text-center">Persistence</th>
+                                    <th class="px-10 py-6">OS</th>
                                 </tr>
                             </thead>
-                            <tbody id="targets-tbody" class="divide-y divide-gray-800">
-                                <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No managed targets yet.</td></tr>
+                            <tbody id="targets-tbody" class="divide-y divide-vantage-border">
+                                <tr><td colspan="7" class="px-8 py-16 text-center text-vantage-text-dim italic text-lg opacity-40">No managed targets in current sector...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -93,10 +105,10 @@
 
                 <!-- Operating Systems Tab -->
                 <div id="tab-operating-systems" class="tab-content hidden p-8 space-y-6">
-                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <h3 class="text-lg font-bold mb-2">Operating Systems</h3>
-                        <p class="text-sm text-gray-400">OS fingerprinting results grouped by discovered hosts.</p>
-                        <div id="os-table" class="mt-4 text-sm text-gray-500">No OS fingerprint data yet.</div>
+                    <div class="glass-card p-8 rounded-2xl border border-vantage-border shadow-2xl">
+                        <h3 class="text-xl font-black uppercase tracking-widest text-vantage-text italic mb-4">Host Fingerprinting</h3>
+                        <p class="text-base text-vantage-text-dim/80">OS fingerprinting results grouped by identified sector assets.</p>
+                        <div id="os-table" class="mt-6 text-sm text-vantage-text-dim">No operational fingerprint data available...</div>
                     </div>
                 </div>
                  <div id="tab-reports" class="tab-content hidden p-8 space-y-6">
@@ -107,16 +119,16 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
-                                <thead class="text-gray-400 border-b border-vantage-border">
+                                <thead class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-xs border-b border-vantage-border">
                                     <tr>
-                                        <th class="px-3 py-2">Report Name</th>
-                                        <th class="px-3 py-2">Target</th>
-                                        <th class="px-3 py-2">Date</th>
-                                        <th class="px-3 py-2">Status</th>
-                                        <th class="px-3 py-2 text-right">Actions</th>
+                                        <th class="px-6 py-4">Report Identifier</th>
+                                        <th class="px-6 py-4">Engagement Scope</th>
+                                        <th class="px-6 py-4">Generation Date</th>
+                                        <th class="px-6 py-4">Tactical Status</th>
+                                        <th class="px-6 py-4 text-right">Operational Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="reports-tbody" class="divide-y divide-gray-800">
+                                <tbody id="reports-tbody" class="divide-y divide-vantage-border">
                                     <!-- Populated by JS -->
                                 </tbody>
                             </table>
@@ -158,61 +170,63 @@
                         
                         <div class="space-y-6">
                             <!-- Notification Settings -->
-                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                    <h4 class="font-semibold">Notification Center (Slack/Telegram)</h4>
+                            <div class="p-4 bg-vantage-sidebar/50 rounded-xl border border-vantage-border shadow-inner">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20">
+                                        <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    </div>
+                                    <h4 class="text-lg font-black uppercase tracking-widest italic text-vantage-text">Notification Center</h4>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-6">
                                     <div class="col-span-2">
-                                        <label class="flex items-center gap-2 text-sm text-gray-300">
-                                            <input type="checkbox" id="notify-enabled" class="rounded border-gray-700 bg-vantage-bg">
-                                            Enable Notifications for Critical/High Findings
+                                        <label class="flex items-center gap-3 text-base font-medium text-vantage-text cursor-pointer">
+                                            <input type="checkbox" id="notify-enabled" class="w-5 h-5 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent">
+                                            <span>Enable High-Priority Tactical Notifications</span>
                                         </label>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Slack Webhook URL</label>
-                                        <input id="notify-slack" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="https://hooks.slack.com/services/â€¦">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Slack Webhook URL</label>
+                                        <input id="notify-slack" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="https://hooks.slack.com/services/â€¦">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Telegram Bot Token</label>
-                                        <input id="notify-tg-token" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="0000000000:AAEbâ€¦">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Telegram Bot Token</label>
+                                        <input id="notify-tg-token" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="0000000000:AAEbâ€¦">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs text-gray-500 mb-1 uppercase">Telegram Chat ID</label>
-                                        <input id="notify-tg-chat" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded px-3 py-2 text-xs" placeholder="-100123456789">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Telegram Chat ID</label>
+                                        <input id="notify-tg-chat" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="-100123456789">
                                     </div>
                                     <div class="flex items-end">
-                                        <button onclick="saveNotifyConfig()" class="w-full bg-vantage-accent hover:bg-green-700 text-white font-bold py-2 rounded text-xs transition-colors">Save Settings</button>
+                                        <button onclick="saveNotifyConfig()" class="w-full bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black py-4 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-vantage-accent/20">Save Operational Settings</button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Vantage Agent -->
-                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
-                                <h4 class="font-semibold mb-2">Vantage Agent Durumu</h4>
-                                <p class="text-sm text-gray-400">L3 ters tünel motorunun mevcut durumu.</p>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <div id="admin-agent-dot" class="w-2 h-2 rounded-full bg-gray-600"></div>
-                                    <span id="admin-agent-label" class="text-sm text-gray-500 uppercase font-mono">Pasif</span>
+                            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border shadow-inner">
+                                <h4 class="text-sm font-black text-vantage-text uppercase tracking-widest italic mb-2">Vantage Engagement Agent</h4>
+                                <p class="text-xs text-vantage-text-dim/70">Operational status of the L3 reverse tunnel tactical engine.</p>
+                                <div class="mt-4 flex items-center gap-3">
+                                    <div id="admin-agent-dot" class="w-2.5 h-2.5 rounded-full bg-vantage-text-dim/20 shadow-inner"></div>
+                                    <span id="admin-agent-label" class="text-xs text-vantage-text-dim font-black uppercase tracking-tighter">Inactive Sector Access</span>
                                 </div>
                             </div>
 
                             <!-- Vantage System Admin -->
                             {{if .ModifySystem}}
-                            <div class="p-4 bg-black/30 rounded border border-vantage-border">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    <h4 class="font-semibold">Sistem Yönetimi</h4>
+                            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border shadow-inner">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </div>
+                                    <h4 class="text-lg font-black uppercase tracking-widest italic text-vantage-text">Advanced Administration</h4>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="window.location.href='/users'" class="flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/40 text-blue-300 py-3 rounded-lg text-sm font-semibold transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                        Kullanıcı Yönetimi
+                                <div class="grid grid-cols-2 gap-6">
+                                    <button onclick="window.location.href='/users'" class="flex items-center justify-center gap-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-500 py-4 rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-blue-500/5 uppercase tracking-widest">
+                                        User Management
                                     </button>
-                                    <button onclick="window.location.href='/webhooks'" class="flex items-center justify-center gap-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/40 text-purple-300 py-3 rounded-lg text-sm font-semibold transition-all">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                                        Webhook Yönetimi
+                                    <button onclick="window.location.href='/webhooks'" class="flex items-center justify-center gap-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-500 py-4 rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-purple-500/5 uppercase tracking-widest">
+                                        Webhook Management
                                     </button>
                                 </div>
                             </div>
@@ -848,16 +862,16 @@
                                 <h4 class="font-semibold text-lg">${c.name}</h4>
                                 <p class="text-sm text-gray-500">${c.status}</p>
                             </div>
-                            <button onclick="window.location.href='/campaigns/${c.id}'" class="bg-vantage-accent/20 hover:bg-vantage-accent/40 text-vantage-accent px-4 py-1.5 rounded-lg text-xs font-bold transition-all">Görüntüle</button>
+                            <button onclick="window.location.href='/campaigns/${c.id}'" class="bg-vantage-accent/20 hover:bg-vantage-accent/40 text-vantage-accent px-4 py-1.5 rounded-lg text-xs font-bold transition-all">View</button>
                         </div>
                         <div class="grid grid-cols-4 gap-4 text-sm">
-                            <div><p class="text-gray-500 text-xs">Gönderildi</p><p class="font-bold">${c.total_targets || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Açıldı</p><p class="font-bold text-green-400">${c.emails_opened || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Tıklandı</p><p class="font-bold text-yellow-400">${c.links_clicked || 0}</p></div>
-                            <div><p class="text-gray-500 text-xs">Veri Gönderildi</p><p class="font-bold text-red-400">${c.data_submitted || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Sent</p><p class="font-bold">${c.total_targets || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Opened</p><p class="font-bold text-green-400">${c.emails_opened || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Clicked</p><p class="font-bold text-yellow-400">${c.links_clicked || 0}</p></div>
+                            <div><p class="text-gray-500 text-xs">Data Submitted</p><p class="font-bold text-red-400">${c.data_submitted || 0}</p></div>
                         </div>
                     </div>
-                `).join('') || '<p class="text-gray-500 text-center py-8">Hiç kampanya bulunamadı.</p>';
+                `).join('') || '<p class="text-gray-500 text-center py-8">No campaigns found.</p>';
             } catch (e) {
                 console.error('Load campaigns error:', e);
             }
@@ -878,17 +892,24 @@
             return fetch(path, options);
         }
 
-        // Use URL params for tab switching if present
+        // Initialize on page load
         window.addEventListener('load', () => {
             const params = new URLSearchParams(window.location.search);
             const tab = params.get('tab');
             if (tab) {
                 switchTab(tab);
+            } else {
+                switchTab('dashboard');
             }
+            
+            pollAgentStatus();
+            agentPollInterval = setInterval(pollAgentStatus, 5000);
+            setInterval(loadTasks, 7000);
+            loadNotifyConfig();
         });
 
         async function deleteTask(id) {
-            if (!confirm('Bu tarama görevini ve tüm bulgularını silmek istediğinize emin misiniz?')) return;
+            if (!confirm('Are you sure you want to delete this scan task and all its findings?')) return;
             try {
                 const resp = await fetch(`/api/scanner/tasks/${id}`, {
                     method: 'DELETE',
@@ -897,12 +918,12 @@
                 const data = await resp.json();
                 if (data.success) {
                     loadTasks();
-                    showNotification('Görev başarıyla silindi', 'success');
+                    showNotification('Task deleted successfully', 'success');
                 } else {
                     showNotification(data.message, 'error');
                 }
             } catch (err) {
-                showNotification('İşlem başarısız oldu', 'error');
+                showNotification('Operation failed', 'error');
             }
         }
 
@@ -932,7 +953,7 @@
 
                 const tbody = document.getElementById('os-table');
                 if (Object.keys(osMap).length === 0) {
-                    tbody.innerHTML = '<p class="text-xs text-gray-500 italic">Mevcut bulgularda işletim sistemi izi bulunamadı.</p>';
+                    tbody.innerHTML = '<p class="text-xs text-gray-500 italic">No operating system footprints found in current findings.</p>';
                     return;
                 }
 
@@ -940,8 +961,8 @@
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-gray-400 uppercase border-b border-vantage-border">
                             <tr>
-                                <th class="px-4 py-2">İşletim Sistemi / Teknoloji</th>
-                                <th class="px-4 py-2 text-right">Tespit Sayısı</th>
+                                <th class="px-4 py-2">Operating System / Technology</th>
+                                <th class="px-4 py-2 text-right">Detection Count</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-vantage-border">
@@ -958,15 +979,5 @@
                 console.error('OS Stats failed:', err);
             }
         }
-
-        // Initialize on page load
-        window.addEventListener('load', () => {
-            switchTab('dashboard');
-            pollAgentStatus();
-            agentPollInterval = setInterval(pollAgentStatus, 5000);
-            setInterval(loadTasks, 7000);
-            loadNotifyConfig();
-        });
     </script>
 {{end}}
-{{define "scripts"}}{{end}}

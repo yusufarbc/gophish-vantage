@@ -1,102 +1,122 @@
 {{define "body"}}
-<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <div class="row">
-        <h1 class="page-header">
-            Users &amp; Groups
-        </h1>
-    </div>
-    <div id="flashes" class="row"></div>
-    <div class="row">
-        <button type="button" class="btn btn-primary" onclick="edit(-1)" data-toggle="modal" data-backdrop="static"
-            data-target="#modal">
-            <i class="fa fa-plus"></i> New Group</button>
-    </div>
-    &nbsp;
-    <div id="loading">
-        <i class="fa fa-spinner fa-spin fa-4x"></i>
-    </div>
-    <div id="emptyMessage" class="row" style="display:none;">
-        <div class="alert alert-info">
-            No groups created yet. Let's create one!
+<div class="p-8 space-y-8 animate-fadeIn">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black tracking-tighter text-vantage-text uppercase italic">
+                Tactical Units
+            </h1>
+            <p class="text-base text-vantage-text-dim mt-2 tracking-wide uppercase font-black opacity-60">Organize and manage target personnel groups</p>
         </div>
+        <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-8 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 flex items-center gap-3 uppercase tracking-widest" data-toggle="modal" data-backdrop="static" data-target="#modal" onclick="edit(-1)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Group
+        </button>
     </div>
-    <div class="row">
-        <table id="groupTable" class="table" style="display:none;">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th># of Members</th>
-                    <th>Modified Date</th>
-                    <th class="col-md-2 no-sort"></th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
-</div>
-<!-- Modal -->
-<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title" id="groupModalLabel">New Group</h4>
+
+    <div id="flashes" class="row"></div>
+
+    <!-- Main Content Area -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30">
+            <div id="loading" class="flex justify-center p-12">
+                <i class="fa fa-spinner fa-spin fa-3x text-vantage-accent opacity-50"></i>
             </div>
-            <div class="modal-body">
-                <div class="row" id="modal.flashes"></div>
-                <label class="control-label" for="name">Name:</label>
-                <div class="form-group">
-                    <input type="text" class="form-control" ng-model="group.name" placeholder="Group name" id="name"
-                        autofocus />
+            
+            <div id="emptyMessage" class="row" style="display:none;">
+                <div class="alert alert-info">
+                    No tactical groups identified. Let's create one!
                 </div>
-                <div class="form-group">
-                    <span class="btn btn-danger btn-file" data-toggle="tooltip" data-placement="right"
-                        title="Supports CSV files" id="fileUpload">
-                        <i class="fa fa-plus"></i> Bulk Import Users
-                        <input type="file" id="csvupload" multiple>
-                    </span>
-                    <span id="csv-template" class="text-muted small">
-                        <i class="fa fa-file-excel-o"></i> Download CSV Template</span>
-                </div>
-                <div class="row">
-                    <form id="targetForm">
-                        <div class="col-sm-2">
-                            <input type="text" class="form-control" placeholder="First Name" id="firstName">
-                        </div>
-                        <div class="col-sm-2">
-                            <input type="text" class="form-control" placeholder="Last Name" id="lastName">
-                        </div>
-                        <div class="col-sm-3">
-                            <input type="email" class="form-control" placeholder="Email" id="email" required>
-                        </div>
-                        <div class="col-sm-3">
-                            <input type="text" class="form-control" placeholder="Position" id="position">
-                        </div>
-                        <div class="col-sm-1">
-                            <button type="submit" class="btn btn-danger btn-lg">
-                                <i class="fa fa-plus"></i> Add</button>
-                        </div>
-                    </form>
-                </div>
-                <br />
-                <table id="targetsTable" class="table table-hover table-striped table-condensed">
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="groupTable" class="w-full text-left text-lg" style="display:none;">
                     <thead>
-                        <tr>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Position</th>
-                            <th class="no-sort"></th>
-                    <tbody>
+                        <tr class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-sm border-b border-vantage-border">
+                            <th class="px-8 py-5">Name</th>
+                            <th class="px-8 py-5"># of Members</th>
+                            <th class="px-8 py-5">Modified Date</th>
+                            <th class="px-8 py-5 text-right no-sort">Operational Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-vantage-border">
                     </tbody>
                 </table>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="modalSubmit">Save changes</button>
+        </div>
+    </div>
+</div>
+<!-- Modal Modernization -->
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content glass-card rounded-2xl border border-vantage-border shadow-2xl p-0 overflow-hidden bg-vantage-panel">
+            <div class="modal-header border-b border-vantage-border/30 p-8 flex items-center justify-between bg-vantage-sidebar/30">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-vantage-accent/10 border border-vantage-accent/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-black text-vantage-text tracking-tighter italic uppercase" id="groupModalLabel">Tactical Unit Assembly</h4>
+                        <p class="text-sm text-vantage-text-dim mt-1 font-black uppercase tracking-widest opacity-60">Defined strategic targeting clusters</p>
+                    </div>
+                </div>
+                <button type="button" class="text-vantage-text-dim hover:text-vantage-text transition-colors text-3xl p-2" data-dismiss="modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body p-8 space-y-8" id="modal_body">
+                <div class="row" id="modal.flashes"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest" for="name">Unit Identifier</label>
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-6 py-4 text-base focus:border-vantage-accent outline-none transition-all placeholder:text-vantage-text-dim/20" ng-model="group.name" placeholder="Group name" id="name" autofocus />
+                    </div>
+                    
+                    <div class="flex items-end gap-4">
+                        <div class="relative group">
+                            <span class="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 font-black px-8 py-4 rounded-xl text-sm transition-all cursor-pointer flex items-center gap-3 uppercase tracking-widest">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                Bulk Intel Import
+                                <input type="file" id="csvupload" class="absolute inset-0 opacity-0 cursor-pointer" multiple>
+                            </span>
+                        </div>
+                        <span id="csv-template" class="text-vantage-text-dim hover:text-vantage-accent transition-colors cursor-pointer text-xs font-black uppercase tracking-widest p-4">
+                            <i class="fa fa-file-excel-o mr-2"></i> Download CSV Spec
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-vantage-sidebar/30 p-8 rounded-2xl border border-vantage-border shadow-inner">
+                    <h5 class="text-sm font-black text-vantage-text uppercase tracking-widest mb-6 opacity-80">Manual Entry Interface</h5>
+                    <form id="targetForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all" placeholder="First Name" id="firstName">
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all" placeholder="Last Name" id="lastName">
+                        <input type="email" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all" placeholder="Email" id="email" required>
+                        <input type="text" class="w-full bg-vantage-bg/50 border border-vantage-border rounded-xl px-4 py-3 text-sm focus:border-vantage-accent outline-none transition-all" placeholder="Position" id="position">
+                        <button type="submit" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-6 py-3 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-vantage-accent/20 uppercase tracking-widest">
+                            Add Agent
+                        </button>
+                    </form>
+                </div>
+
+                <div class="overflow-hidden border border-vantage-border rounded-2xl bg-vantage-bg/20">
+                    <table id="targetsTable" class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-xs border-b border-vantage-border">
+                                <th class="px-6 py-4">First Name</th>
+                                <th class="px-6 py-4">Last Name</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4">Position</th>
+                                <th class="px-6 py-4 text-right no-sort">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-vantage-border">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer p-8 border-t border-vantage-border/30 flex items-center justify-between bg-vantage-sidebar/30">
+                <button type="button" class="px-8 py-3 text-base font-black text-vantage-text-dim hover:text-vantage-text transition-all tracking-widest uppercase" data-dismiss="modal">Abort</button>
+                <button type="button" class="bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black px-10 py-3.5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 uppercase tracking-widest" id="modalSubmit">Authorize Unit</button>
             </div>
         </div>
     </div>

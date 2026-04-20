@@ -1,8 +1,16 @@
 {{ define "base" }}
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
+    <script>
+        // Init theme immediately to prevent FOIT
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Vantage Security Hub - Advanced Penetration Testing & Phishing Simulation Platform">
@@ -13,8 +21,9 @@
 
     <!-- UI Core -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/vantage_core.css">
     
     <!-- Alpine.js for interactive UI -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -29,11 +38,11 @@
                 extend: {
                     colors: {
                         vantage: {
-                            bg: '#0b0f12',
-                            sidebar: '#11161a',
-                            card: '#151c22',
-                            border: '#2a333c',
-                            accent: '#5ecf88',
+                            bg: 'var(--v-bg)',
+                            sidebar: 'var(--v-sidebar)',
+                            card: 'var(--v-card)',
+                            border: 'var(--v-border)',
+                            accent: 'var(--v-accent)',
                             critical: '#bc8cf2',
                             high: '#f85149',
                             medium: '#d29922',
@@ -41,8 +50,8 @@
                         }
                     },
                     fontFamily: {
-                        sans: ['IBM Plex Sans', 'sans-serif'],
-                        mono: ['Roboto Mono', 'monospace'],
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
@@ -51,36 +60,48 @@
 
     <style>
         body {
-            background-color: #0b0f12;
-            color: #c9d1d9;
-            font-family: 'IBM Plex Sans', sans-serif;
-            background-image: radial-gradient(circle at 8% 8%, rgba(94, 207, 136, 0.05) 0, transparent 34%), linear-gradient(180deg, #0b0f12 0%, #0a0d10 100%);
+            background-color: var(--v-bg);
+            color: var(--v-text);
+            font-family: 'Outfit', sans-serif;
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+        
+        [x-cloak] { display: none !important; }
         /* Override Legacy Styles */
         .navbar { display: none !important; }
-        .sidebar { background: #11161a !important; border: none !important; }
-        .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+        .sidebar { background: var(--v-sidebar) !important; border: none !important; }
+        .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; background: transparent !important; }
         
         /* Vantage Styled Components for Legacy Pages */
-        .btn-primary { background-color: #5ecf88 !important; border: none !important; color: #0b0f12 !important; font-weight: 600 !important; padding: 0.5rem 1.25rem !important; border-radius: 0.375rem !important; }
-        .btn-primary:hover { background-color: #4ebf78 !important; }
-        .label { border-radius: 4px !important; padding: 0.2rem 0.5rem !important; }
-        .label-success { background-color: #5ecf8820 !important; color: #5ecf88 !important; border: 1px solid #5ecf8840 !important; }
+        .btn-primary { 
+            background-color: var(--v-accent) !important; 
+            border: none !important; 
+            color: var(--v-bg) !important; 
+            font-weight: 700 !important; 
+            padding: 0.6rem 1.5rem !important; 
+            border-radius: 0.5rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            box-shadow: 0 4px 6px -1px var(--v-accent-glow);
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .label { border-radius: 6px !important; padding: 0.25rem 0.6rem !important; font-weight: 600 !important; }
+        .label-success { background-color: var(--v-accent-glow) !important; color: var(--v-accent) !important; border: 1px solid var(--v-border) !important; }
         
-        .table { background: rgba(0,0,0,0.1) !important; border-collapse: separate !important; border-spacing: 0 !important; border: 1px solid #2a333c !important; border-radius: 0.5rem !important; overflow: hidden !important; }
-        .table thead th { border-bottom: 2px solid #2a333c !important; color: #7f8a95 !important; text-transform: uppercase; font-size: 0.7rem !important; letter-spacing: 0.05em !important; padding: 1rem !important; font-weight: 600 !important; }
-        .table td { border-top: 1px solid #2a333c !important; color: #c9d1d9 !important; padding: 0.75rem 1rem !important; background: transparent !important; }
-        .table tr:hover td { background: rgba(255,255,255,0.02) !important; }
+        .table { background: var(--v-card) !important; border-collapse: separate !important; border-spacing: 0 !important; border: 1px solid var(--v-border) !important; border-radius: 0.75rem !important; overflow: hidden !important; box-shadow: var(--shadow-premium); }
+        .table thead th { border-bottom: 2px solid var(--v-border) !important; color: var(--v-text-dim) !important; text-transform: uppercase; font-size: 0.75rem !important; letter-spacing: 0.05em !important; padding: 1.25rem 1rem !important; font-weight: 700 !important; background: var(--v-sidebar) !important; }
+        .table td { border-top: 1px solid var(--v-border) !important; color: var(--v-text) !important; padding: 1rem !important; background: transparent !important; }
+        .table tr:hover td { background: var(--v-accent-glow) !important; }
         
-        .modal-content { background: #151c22 !important; border: 1px solid #2a333c !important; color: #c9d1d9 !important; border-radius: 0.75rem !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; }
-        .modal-header { border-bottom: 1px solid #2a333c !important; }
-        .modal-footer { border-top: 1px solid #2a333c !important; }
-        .form-control { background: #0b0f12 !important; border: 1px solid #2a333c !important; color: #fff !important; }
-        .form-control:focus { border-color: #5ecf88 !important; box-shadow: 0 0 0 2px rgba(94, 207, 136, 0.2) !important; }
+        .modal-content { background: var(--v-panel) !important; border: 1px solid var(--v-border) !important; color: var(--v-text) !important; border-radius: 1rem !important; box-shadow: var(--shadow-premium) !important; }
+        .modal-header { border-bottom: 1px solid var(--v-border) !important; padding: 1.5rem !important; }
+        .modal-footer { border-top: 1px solid var(--v-border) !important; padding: 1.5rem !important; }
+        .form-control { background: var(--v-input-bg) !important; border: 1px solid var(--v-border) !important; color: var(--v-text) !important; border-radius: 0.5rem !important; padding: 0.75rem 1rem !important; }
+        .form-control:focus { border-color: var(--v-accent) !important; box-shadow: 0 0 0 2px var(--v-accent-glow) !important; }
         
-        .panel { background: #151c22 !important; border: 1px solid #2a333c !important; border-radius: 0.75rem !important; }
-        .panel-heading { background: rgba(255,255,255,0.03) !important; border-bottom: 1px solid #2a333c !important; color: #fff !important; font-weight: 600 !important; }
+        .panel { background: var(--v-panel) !important; border: 1px solid var(--v-border) !important; border-radius: 1rem !important; overflow: hidden; box-shadow: var(--shadow-premium); }
+        .panel-heading { background: var(--v-sidebar) !important; border-bottom: 1px solid var(--v-border) !important; color: var(--v-text) !important; font-weight: 700 !important; padding: 1.25rem 1.5rem !important; }
     </style>
 
     <script>
@@ -102,27 +123,49 @@
         {{template "nav" .}}
 
         <!-- Main Content Area -->
-        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+        <div class="flex-1 lg:ml-80 flex flex-col min-h-screen">
             <!-- Global Header -->
-            <header class="h-16 bg-black/20 border-b border-vantage-border px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
+            <header class="h-16 bg-vantage-header-bg border-b border-vantage-border px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
                 <div class="flex items-center gap-4">
-                    <h1 class="text-lg font-semibold tracking-wide text-white uppercase">{{ .Title }}</h1>
+                    <h1 class="text-xl font-black tracking-tight text-vantage-text uppercase italic">
+                        <span class="text-vantage-accent">V</span>antage <span class="text-vantage-text-dim opacity-50">|</span> {{ .Title }}
+                    </h1>
                 </div>
                 <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sistem Aktif</span>
+                    <!-- Theme Toggle -->
+                    <button x-data="{ 
+                            theme: localStorage.getItem('theme') || 'dark',
+                            toggle() {
+                                this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                                localStorage.setItem('theme', this.theme);
+                                if (this.theme === 'dark') document.documentElement.classList.add('dark');
+                                else document.documentElement.classList.remove('dark');
+                                window.dispatchEvent(new CustomEvent('theme-changed', { detail: this.theme }));
+                            }
+                        }"
+                        @click="toggle()"
+                        class="p-2 rounded-lg bg-vantage-card border border-vantage-border text-vantage-text-dim hover:text-vantage-accent hover:border-vantage-accent/30 transition-all active:scale-90"
+                        title="Toggle Theme">
+                        <template x-if="theme === 'dark'">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707.707m12.728 0l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                        </template>
+                        <template x-if="theme === 'light'">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </template>
+                    </button>
+
+                    <div class="flex items-center gap-3 pr-6 border-r border-vantage-border">
+                        <span class="w-3 h-3 rounded-full bg-vantage-accent shadow-[0_0_10px_var(--v-accent)]"></span>
+                        <span class="text-sm font-black text-vantage-text-dim uppercase tracking-widest">Tactical Network Active</span>
                     </div>
                     {{if .User}}
-                    <div class="flex items-center gap-3 pl-6 border-l border-vantage-border">
                         <div class="flex flex-col items-end">
-                            <span class="text-xs font-semibold text-white">{{.User.Username}}</span>
-                            <span class="text-[10px] text-gray-500 font-mono">{{if .ModifySystem}}Yönetici{{else}}Kullanıcı{{end}}</span>
+                            <span class="text-lg font-bold text-vantage-text">{{.User.Username}}</span>
+                            <span class="text-xs text-vantage-accent font-black uppercase tracking-widest">{{if .ModifySystem}}System Administrator{{else}}Operator{{end}}</span>
                         </div>
-                        <a href="/logout" class="w-8 h-8 rounded-full bg-vantage-card border border-vantage-border flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white" title="Çıkış Yap">
-                            <i class="fa fa-sign-out"></i>
+                        <a href="/logout" class="w-9 h-9 rounded-full bg-vantage-card border border-vantage-border flex items-center justify-center hover:bg-white/5 transition-colors text-gray-400 hover:text-white" title="Logout">
+                            <i class="fa fa-sign-out text-lg"></i>
                         </a>
-                    </div>
                     {{end}}
                 </div>
             </header>

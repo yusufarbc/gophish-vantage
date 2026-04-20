@@ -1,58 +1,60 @@
 {{define "vantage/dashboard_stats"}}
 <div id="tab-dashboard" class="tab-content p-8 space-y-6">
-    <div class="grid grid-cols-4 gap-4">
-        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-            <p class="panel-title mb-2">Toplam Zafiyet</p>
-            <p class="text-3xl font-bold text-vantage-accent" id="stat-total">0</p>
-            <p class="text-xs text-gray-500 mt-2">Kapsam: Dahili + Harici</p>
+    <div class="grid grid-cols-4 gap-6">
+        <div class="glass-card p-6 rounded-2xl border border-vantage-border/50 shadow-xl bg-vantage-sidebar/10">
+            <p class="text-xs font-black uppercase tracking-widest text-vantage-text-dim mb-3 italic">Total Vulnerabilities</p>
+            <p class="text-4xl font-black text-vantage-accent tracking-tighter" id="stat-total">0</p>
+            <p class="text-sm text-vantage-text-dim/60 mt-3">Scope: Internal + External</p>
         </div>
-        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-            <p class="panel-title mb-2">Kritik Risk</p>
-            <p class="text-3xl font-bold" id="stat-critical" style="color: #d498ff;">0</p>
-            <p class="text-xs text-gray-500 mt-2">CVSS 9.0 - 10.0</p>
+        <div class="glass-card p-6 rounded-2xl border border-vantage-border/50 shadow-xl bg-vantage-sidebar/10">
+            <p class="text-xs font-black uppercase tracking-widest text-red-400/80 mb-3 italic">Critical Risks</p>
+            <p class="text-4xl font-black text-red-500 tracking-tighter" id="stat-critical">0</p>
+            <p class="text-sm text-vantage-text-dim/60 mt-3">CVSS 9.0 - 10.0 Intensity</p>
         </div>
-        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-            <p class="panel-title mb-2">Aktif Taramalar</p>
-            <p class="text-3xl font-bold text-blue-400" id="stat-scans">0</p>
-            <p class="text-xs text-gray-500 mt-2">Keşif / Doğrulama</p>
+        <div class="glass-card p-6 rounded-2xl border border-vantage-border/50 shadow-xl bg-vantage-sidebar/10">
+            <p class="text-xs font-black uppercase tracking-widest text-blue-400/80 mb-3 italic">Active Scans</p>
+            <p class="text-4xl font-black text-blue-500 tracking-tighter" id="stat-scans">0</p>
+            <p class="text-sm text-vantage-text-dim/60 mt-3">Discovery / Verification Phase</p>
         </div>
-        <div class="glass-card p-5 rounded-lg border border-vantage-border">
-            <p class="panel-title mb-2">Kampanya Sayısı</p>
-            <p class="text-3xl font-bold text-yellow-400" id="stat-campaigns">0</p>
-            <p class="text-xs text-gray-500 mt-2">Bağlı farkındalık operasyonları</p>
+        <div class="glass-card p-6 rounded-2xl border border-vantage-border/50 shadow-xl bg-vantage-sidebar/10">
+            <p class="text-xs font-black uppercase tracking-widest text-yellow-400/80 mb-3 italic">Campaign Count</p>
+            <p class="text-4xl font-black text-yellow-500 tracking-tighter" id="stat-campaigns">0</p>
+            <p class="text-sm text-vantage-text-dim/60 mt-3">Active Awareness Operations</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
-        <div class="glass-card p-6 rounded-lg border border-vantage-border col-span-2">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold">Severity Distribution</h3>
-                <span class="text-xs text-vantage-accent font-mono">last sync 30s</span>
+    <div class="grid grid-cols-3 gap-8">
+        <div class="glass-card p-8 rounded-2xl border border-vantage-border/50 shadow-2xl col-span-2">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-black uppercase tracking-widest text-vantage-text italic">Severity Distribution</h3>
+                <span class="text-xs text-vantage-accent font-black tracking-widest animate-pulse">LIVE SYNC ACTIVE</span>
             </div>
-            <canvas id="severityChart"></canvas>
+            <div class="relative h-64">
+                <canvas id="severityChart"></canvas>
+            </div>
         </div>
-        <div class="glass-card p-6 rounded-lg border border-vantage-border">
-            <h3 class="font-semibold mb-4">Assessment Pipeline</h3>
-            <div class="space-y-4 text-sm">
+        <div class="glass-card p-8 rounded-2xl border border-vantage-border/50 shadow-2xl bg-vantage-sidebar/5">
+            <h3 class="text-lg font-black uppercase tracking-widest text-vantage-text mb-8 italic">Operational Pipeline</h3>
+            <div class="space-y-6">
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-gray-400">Asset Discovery</span><span class="text-vantage-accent font-mono">82%</span></div>
-                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-vantage-accent h-2 rounded-full" style="width: 82%"></div></div>
+                    <div class="flex justify-between mb-2"><span class="text-sm font-bold text-vantage-text-dim/80">Asset Discovery</span><span class="text-vantage-accent font-black text-sm">82%</span></div>
+                    <div class="w-full bg-vantage-border/20 rounded-full h-2.5 overflow-hidden shadow-inner"><div class="bg-vantage-accent h-full rounded-full shadow-[0_0_10px_rgba(186,218,85,0.4)]" style="width: 82%"></div></div>
                 </div>
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-gray-400">Port & Service</span><span class="text-blue-400 font-mono">64%</span></div>
-                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-blue-400 h-2 rounded-full" style="width: 64%"></div></div>
+                    <div class="flex justify-between mb-2"><span class="text-sm font-bold text-vantage-text-dim/80">Port & Service</span><span class="text-blue-400 font-black text-sm">64%</span></div>
+                    <div class="w-full bg-vantage-border/20 rounded-full h-2.5 overflow-hidden shadow-inner"><div class="bg-blue-400 h-full rounded-full shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width: 64%"></div></div>
                 </div>
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-gray-400">Vulnerability Match</span><span class="text-yellow-400 font-mono">47%</span></div>
-                    <div class="w-full bg-gray-800 rounded-full h-2"><div class="bg-yellow-400 h-2 rounded-full" style="width: 47%"></div></div>
+                    <div class="flex justify-between mb-2"><span class="text-sm font-bold text-vantage-text-dim/80">Vulnerability Match</span><span class="text-yellow-400 font-black text-sm">47%</span></div>
+                    <div class="w-full bg-vantage-border/20 rounded-full h-2.5 overflow-hidden shadow-inner"><div class="bg-yellow-400 h-full rounded-full shadow-[0_0_10px_rgba(250,204,21,0.4)]" style="width: 47%"></div></div>
                 </div>
-                <div class="pt-2 border-t openvas-divider">
-                    <p class="text-xs text-gray-500">Queue Status</p>
-                    <p class="text-sm mt-1 font-mono text-gray-300">
-                        sent: <span id="mail-sent">0</span> /
-                        deferred: <span id="mail-deferred">0</span> /
-                        queued: <span id="mail-queued">0</span>
-                    </p>
+                <div class="pt-6 border-t border-vantage-border/30">
+                    <p class="text-xs font-black uppercase tracking-widest text-vantage-text-dim/40 mb-3 italic">Tactical Queue Status</p>
+                    <div class="flex items-center gap-4 text-sm font-black tracking-widest">
+                        <div class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div><span class="text-vantage-text/60">SNT:</span><span id="mail-sent" class="text-vantage-text">0</span></div>
+                        <div class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div><span class="text-vantage-text/60">DFR:</span><span id="mail-deferred" class="text-vantage-text">0</span></div>
+                        <div class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div><span class="text-vantage-text/60">QUE:</span><span id="mail-queued" class="text-vantage-text">0</span></div>
+                    </div>
                 </div>
             </div>
         </div>

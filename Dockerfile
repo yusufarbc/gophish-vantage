@@ -25,11 +25,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV GOPROXY=https://proxy.golang.org,direct CGO_ENABLED=1
 RUN set -eux; \
-    # Minimal required tools - stable set for reliable container startup.
-    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.12.0; \
-    go install -v github.com/projectdiscovery/httpx/cmd/httpx@v1.6.0; \
-    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@v3.1.0; \
-    go install -v github.com/projectdiscovery/interactsh/cmd/interactsh-client@v1.2.0; \
+    # All required tools for Vantage platform
+    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest; \
+    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest; \
+    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest; \
+    go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest; \
+    go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest; \
+    go install -v github.com/projectdiscovery/katana/cmd/katana@latest; \
+    go install -v github.com/projectdiscovery/tlsx/cmd/tlsx@latest; \
+    go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest; \
+    go install -v github.com/projectdiscovery/uncover/cmd/uncover@latest; \
+    go install -v github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest; \
+    go install -v github.com/jpillora/chisel@latest; \
     true
 
 # ========================================================================================
@@ -84,11 +91,13 @@ RUN mkdir -p /opt/vantage/db /home/vantage/.nuclei-templates /home/vantage/.conf
     chown -R vantage:vantage /opt/vantage /home/vantage/.nuclei-templates /home/vantage/.config/nuclei && \
     chmod +x /opt/vantage/docker-entrypoint.sh /opt/vantage/vantage-server
 
-# Set Linux capabilities for network operations (only for binaries that exist)
+# Set Linux capabilities for network operations
 RUN set -eux; \
-    [ -f /usr/local/bin/naabu ] && setcap cap_net_raw,cap_net_admin=ep /usr/local/bin/naabu || true; \
-    [ -f /usr/local/bin/httpx ] && setcap cap_net_raw=ep /usr/local/bin/httpx || true; \
-    [ -f /usr/local/bin/chisel ] && setcap cap_net_admin=ep /usr/local/bin/chisel || true
+    [ -f /usr/local/bin/naabu ] && setcap cap_net_raw,cap_net_admin=eip /usr/local/bin/naabu || true; \
+    [ -f /usr/local/bin/httpx ] && setcap cap_net_raw=eip /usr/local/bin/httpx || true; \
+    [ -f /usr/local/bin/dnsx ] && setcap cap_net_raw=eip /usr/local/bin/dnsx || true; \
+    [ -f /usr/local/bin/chisel ] && setcap cap_net_admin=eip /usr/local/bin/chisel || true; \
+    [ -f /opt/vantage/vantage-server ] && setcap cap_net_raw,cap_net_admin=eip /opt/vantage/vantage-server || true
 
 # Verify capabilities (non-fatal)
 RUN set -eux; \

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"bitbucket.org/liamstask/goose/lib/goose"
@@ -17,13 +18,8 @@ import (
 	"github.com/gophish/gophish/config"
 	log "github.com/gophish/gophish/logger"
 	"github.com/jinzhu/gorm"
-	"modernc.org/sqlite"
-	"database/sql"
 )
 
-func init() {
-	sql.Register("sqlite3", &sqlite.Driver{})
-}
 
 var db *gorm.DB
 var conf *config.Config
@@ -177,7 +173,17 @@ func Setup(c *config.Config) error {
 	i := 0
 	for {
 		driverName := conf.DBName
-		db, err = gorm.Open(driverName, conf.DBPath)
+		dbPath := conf.DBPath
+		// Enforce WAL mode in connection string for SQLite for massive concurrency safety
+		if driverName == "sqlite3" && !strings.Contains(dbPath, "_journal_mode=WAL") {
+			if strings.Contains(dbPath, "?") {
+				dbPath += "&_journal_mode=WAL"
+			} else {
+				dbPath += "?_journal_mode=WAL"
+			}
+		}
+
+		db, err = gorm.Open(driverName, dbPath)
 		if err == nil {
 			break
 		}
@@ -190,16 +196,17 @@ func Setup(c *config.Config) error {
 		time.Sleep(5 * time.Second)
 	}
 	db.LogMode(false)
-	db.SetLogger(log.Logger)
-	// SQLite Concurrency optimization: Enable WAL mode for mass JSON parsing from ProjectDiscovery tools.
-	// This prevents the "database is locked" error during concurrent writes.
+	db.SetLogger(log.GormLogger{})
+
+	// SQLite Concurrency optimization: Finalize PRAGMA settings
 	if conf.DBName == "sqlite3" {
 		db.DB().SetMaxOpenConns(1)
 		db.Exec("PRAGMA journal_mode=WAL;")
 		db.Exec("PRAGMA synchronous=NORMAL;")
-		db.Exec("PRAGMA busy_timeout=10000;")
+		db.Exec("PRAGMA busy_timeout=30000;") // Increased to 30s for heavy PD tool loads
 		db.Exec("PRAGMA cache_size=-64000;") // 64MB cache
 		db.Exec("PRAGMA temp_store=MEMORY;")
+		db.Exec("PRAGMA mmap_size=268435456;") // 256MB MMAP for faster reads
 	} else {
 		db.DB().SetMaxOpenConns(25)
 		db.DB().SetMaxIdleConns(5)

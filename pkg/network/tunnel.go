@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gophish/gophish/logger"
 )
@@ -19,11 +20,12 @@ import (
 // TunnelManager manages the Chisel server subprocess that accepts reverse
 // connections from internal agents to create a TUN device on this host.
 type TunnelManager struct {
-	mu      sync.Mutex
-	cmd     *exec.Cmd
-	running bool
-	port    string
-	secret  string
+	mu           sync.Mutex
+	cmd          *exec.Cmd
+	running      bool
+	port         string
+	secret       string
+	targetSubnet string // Automatic route target (e.g. 192.168.1.0/24)
 }
 
 // defaultTunnelManager is the process-wide singleton TunnelManager.
@@ -38,25 +40,23 @@ func GlobalTunnelManager() *TunnelManager {
 }
 
 // Configure sets the listen port and shared secret for the Chisel server.
-// Call this before Start(). Idempotent if the server is already stopped.
-func (tm *TunnelManager) Configure(port, secret string) {
+func (tm *TunnelManager) Configure(port, secret, subnet string) {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
 	if port != "" {
 		tm.port = port
 	}
 	tm.secret = secret
+	tm.targetSubnet = subnet
 }
 
 // Start launches the Chisel server as a subprocess.
-// If the server is already running this is a no-op and returns nil.
-// The Chisel binary must be in PATH inside the container.
 func (tm *TunnelManager) Start() error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
 
 	if tm.running {
-		return nil // already running; idempotent
+		return nil
 	}
 
 	args := []string{
@@ -73,20 +73,55 @@ func (tm *TunnelManager) Start() error {
 		return fmt.Errorf("starting chisel server: %w", err)
 	}
 	tm.running = true
-	log.Printf("[tunnel] chisel server started on port %s (pid=%d)", tm.port, tm.cmd.Process.Pid)
+	logger.Info("Chisel server started", "port", tm.port, "pid", tm.cmd.Process.Pid)
 
-	// Watch for the process to exit so we can reset the running flag
+	// Watch for the process to exit and handle automatic routing
 	go func() {
+		// Periodically check for tun0 to apply automatic routing if configured
+		go tm.watchAndRoute()
+
 		if err := tm.cmd.Wait(); err != nil {
-			logger.Warnf("[tunnel] chisel server exited: %v", err)
+			logger.Warn("Chisel server exited with error", "error", err)
 		}
 		tm.mu.Lock()
 		tm.running = false
 		tm.mu.Unlock()
-		log.Println("[tunnel] chisel server process ended")
+		logger.Info("Chisel server process ended")
 	}()
 
 	return nil
+}
+
+func (tm *TunnelManager) watchAndRoute() {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		tm.mu.Lock()
+		if !tm.running {
+			tm.mu.Unlock()
+			return
+		}
+		subnet := tm.targetSubnet
+		tm.mu.Unlock()
+
+		if subnet != "" {
+			iface, _, connected, _ := tm.AgentConnected()
+			if connected && iface != "" {
+				// Attempt to add route. SetupRoute is idempotent if route exists (returns error we can ignore)
+				err := SetupRoute(subnet, iface)
+				if err == nil {
+					logger.Info("Automatic route applied", "subnet", subnet, "interface", iface)
+					return // Success, stop watching
+				}
+			}
+		}
+
+		select {
+		case <-ticker.C:
+			continue
+		}
+	}
 }
 
 // Stop terminates the Chisel server subprocess gracefully (SIGTERM).

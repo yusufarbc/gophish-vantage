@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/models"
 	"github.com/gorilla/websocket"
 )
@@ -215,19 +216,47 @@ func (s *VantageScanService) RunScannerTool(userID int64, scanID uint, toolName,
 
 		_ = models.UpdateScanTaskProgress(scanID, "running", 20)
 		args := buildScannerArgs(toolName, target, ifaceName, extraFlags)
+		
+		// Structured logging with slog
+		log := logger.With("task_id", scanID, "tool", toolName, "target", target, "interface", ifaceName)
+		log.Info("Starting scanner tool execution")
 		emitLog(fmt.Sprintf("[VANTAGE] ▶ Starting %s on target=%s", strings.ToUpper(toolName), target))
 
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Hour)
 		RegisterScan(scanID, cancel)
 		defer UnregisterScan(scanID)
 
+		// ── Interface Drop Protection: Stop scan if tun interface disappears ──
+		if strings.HasPrefix(ifaceName, "tun") {
+			go func() {
+				ticker := time.NewTicker(5 * time.Second)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case <-ticker.C:
+						_, _, connected, _ := network.GlobalTunnelManager().AgentConnected()
+						if !connected {
+							log.Warn("TUN interface dropped, stopping dependent scan tasks")
+							emitLog("[VANTAGE] !! FATAL: TUN interface lost. Stopping scan to prevent data leakage.")
+							cancel()
+							return
+						}
+					}
+				}
+			}()
+		}
+
 		if err := s.Executor.Execute(ctx, userID, toolName, target, ifaceName, args); err != nil {
+			log.Error("Scanner tool execution failed", "error", err)
 			emitLog(fmt.Sprintf("[ERROR] %s failed: %v", toolName, err))
 			_ = models.UpdateScanTaskProgress(scanID, "failed", 0)
 			return
 		}
 		
 		_ = models.UpdateScanTaskProgress(scanID, "running", 90)
+		log.Info("Scanner tool execution finished")
 		emitLog(fmt.Sprintf("[VANTAGE] ✔ %s finished", strings.ToUpper(toolName)))
 	}()
 	return nil
