@@ -44,9 +44,11 @@ type Config struct {
 	DBSSLCaPath    string      `json:"db_sslca_path"`
 	MigrationsPath string      `json:"migrations_prefix"`
 	TestFlag       bool        `json:"test_flag"`
-	ContactAddress string              `json:"contact_address"`
-	Logging        *log.Config         `json:"logging"`
-	Notifications  *NotificationConfig `json:"notifications"`
+	ContactAddress   string              `json:"contact_address"`
+	ChiselServerPort string              `json:"chisel_server_port"`
+	ChiselSecret     string              `json:"chisel_secret"`
+	Logging          *log.Config         `json:"logging"`
+	Notifications    *NotificationConfig `json:"notifications"`
 }
 
 // Version contains the current gophish version
@@ -78,7 +80,7 @@ func LoadConfig(filepath string) (*Config, error) {
 		config.Logging = &log.Config{}
 	}
 	// Choosing the migrations directory based on the database used.
-	config.MigrationsPath = config.MigrationsPath + config.DBName
+	config.MigrationsPath = config.MigrationsPath + config.DBName + "/migrations"
 	// Explicitly set the TestFlag to false to prevent config.json overrides
 	config.TestFlag = false
 	globalConfig = config

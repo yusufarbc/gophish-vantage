@@ -1,0 +1,94 @@
+{{define "vantage/osint_panel"}}
+<div id="tab-osint" class="tab-content hidden p-8 space-y-8">
+    <!-- OSINT Header -->
+    <div class="glass-card p-8 rounded-2xl border border-vantage-border shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+            <svg class="w-24 h-24 text-vantage-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        </div>
+        <div class="flex items-center gap-6 mb-6">
+            <div class="w-16 h-16 rounded-2xl bg-vantage-accent/10 border border-vantage-accent/20 flex items-center justify-center shadow-lg shadow-vantage-accent/10">
+                <svg class="w-8 h-8 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+            </div>
+            <div>
+                <h3 class="text-3xl font-black uppercase tracking-tighter text-vantage-text italic">Surface Intel / OSINT</h3>
+                <p class="text-base text-vantage-text-dim mt-1 font-black uppercase tracking-widest opacity-60">Passive reconnaissance and external asset discovery</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border/50">
+                <span class="text-xs font-black text-vantage-text-dim uppercase tracking-widest block mb-2">Subdomains Discovered</span>
+                <span class="text-3xl font-black text-vantage-text italic" id="osint-stat-subs">0</span>
+            </div>
+            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border/50">
+                <span class="text-xs font-black text-vantage-text-dim uppercase tracking-widest block mb-2">Cloud Assets Identified</span>
+                <span class="text-3xl font-black text-vantage-text italic" id="osint-stat-cloud">0</span>
+            </div>
+            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border/50">
+                <span class="text-xs font-black text-vantage-text-dim uppercase tracking-widest block mb-2">Intel Data Points</span>
+                <span class="text-3xl font-black text-vantage-accent italic" id="osint-stat-total">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- OSINT Tools Selector -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <button class="glass-card p-6 rounded-xl border border-vantage-border hover:border-vantage-accent/50 transition-all group text-left">
+            <div class="w-10 h-10 rounded-lg bg-vantage-accent/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <h4 class="font-black uppercase tracking-widest text-sm text-vantage-text mb-1">Subfinder</h4>
+            <p class="text-xs text-vantage-text-dim">Passive subdomain enumeration</p>
+        </button>
+        <button class="glass-card p-6 rounded-xl border border-vantage-border hover:border-vantage-accent/50 transition-all group text-left">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+            </div>
+            <h4 class="font-black uppercase tracking-widest text-sm text-vantage-text mb-1">Cloudlist</h4>
+            <p class="text-xs text-vantage-text-dim">Inventory cloud infrastructure</p>
+        </button>
+        <button class="glass-card p-6 rounded-xl border border-vantage-border hover:border-vantage-accent/50 transition-all group text-left">
+            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A2 2 0 013 15.487V5.487a2 2 0 011.106-1.789L9 1m0 19l5.447-2.724A2 2 0 0015 15.487V5.487a2 2 0 00-1.106-1.789L9 1m0 19v-19"/></svg>
+            </div>
+            <h4 class="font-black uppercase tracking-widest text-sm text-vantage-text mb-1">Assetfinder</h4>
+            <p class="text-xs text-vantage-text-dim">Domain relationships discovery</p>
+        </button>
+        <button class="glass-card p-6 rounded-xl border border-vantage-border hover:border-vantage-accent/50 transition-all group text-left">
+            <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h4 class="font-black uppercase tracking-widest text-sm text-vantage-text mb-1">Passive Intel</h4>
+            <p class="text-xs text-vantage-text-dim">OSINT Data Correlation</p>
+        </button>
+    </div>
+
+    <!-- OSINT Findings Table -->
+    <div class="glass-card rounded-2xl border border-vantage-border overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-vantage-border bg-vantage-sidebar/30 flex items-center justify-between">
+            <h4 class="text-lg font-black uppercase tracking-widest text-vantage-text italic">Reconnaissance Intelligence</h4>
+            <div class="flex items-center gap-4">
+                <input type="text" id="osint-search" placeholder="Filter intel..." class="bg-vantage-bg/50 border border-vantage-border rounded-lg px-4 py-2 text-sm focus:border-vantage-accent outline-none">
+                <button onclick="loadOSINT()" class="p-2 hover:bg-vantage-accent/10 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-base">
+                <thead class="bg-vantage-sidebar/50 text-vantage-text-dim font-black uppercase tracking-widest text-xs border-b border-vantage-border">
+                    <tr>
+                        <th class="px-8 py-5">Source</th>
+                        <th class="px-8 py-5">Intel Value</th>
+                        <th class="px-8 py-5">Data Type</th>
+                        <th class="px-8 py-5">Discovery Date</th>
+                        <th class="px-8 py-5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="osint-tbody" class="divide-y divide-vantage-border text-vantage-text">
+                    <tr><td colspan="5" class="px-8 py-12 text-center text-vantage-text-dim italic opacity-40">Initializing OSINT corpus...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{{end}}

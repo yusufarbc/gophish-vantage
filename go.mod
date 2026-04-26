@@ -27,7 +27,7 @@ require (
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405
-	modernc.org/sqlite v1.48.2
+	modernc.org/sqlite v1.48.2 // indirect
 )
 
 require (

@@ -46,6 +46,9 @@ initialize_config() {
     sed -i "s|\${DB_PATH:-/opt/vantage/db/vantage.db}|${DB_PATH:-/opt/vantage/db/vantage.db}|g" "$VANTAGE_CONFIG_PATH"
     sed -i "s|\${SMTP_HOST:-postfix}|${SMTP_HOST:-postfix}|g" "$VANTAGE_CONFIG_PATH"
     sed -i "s|\${SMTP_PORT:-25}|${SMTP_PORT:-25}|g" "$VANTAGE_CONFIG_PATH"
+    # Fix migrations_prefix to absolute path inside container
+    # Local dev uses relative "db/db_", Docker needs the absolute location of copied migrations
+    sed -i 's|"migrations_prefix": "db/db_"|"migrations_prefix": "/opt/vantage/migrations/db_"|g' "$VANTAGE_CONFIG_PATH"
     
     log_success "Configuration initialized (at $VANTAGE_CONFIG_PATH)"
 }

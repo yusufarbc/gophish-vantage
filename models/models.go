@@ -18,7 +18,9 @@ import (
 	"github.com/gophish/gophish/config"
 	log "github.com/gophish/gophish/logger"
 	"github.com/jinzhu/gorm"
+	_ "github.com/mattn/go-sqlite3"
 )
+
 
 
 var db *gorm.DB
@@ -89,9 +91,9 @@ func chooseDBDriver(name, openStr string) goose.DBDriver {
 		d.Import = "github.com/go-sql-driver/mysql"
 		d.Dialect = &goose.MySqlDialect{}
 
-	// Default database is sqlite (modernc.org/sqlite)
+	// Default database is sqlite3 (mattn/go-sqlite3)
 	default:
-		d.Import = "modernc.org/sqlite"
+		d.Import = "github.com/mattn/go-sqlite3"
 		d.Dialect = &goose.Sqlite3Dialect{}
 	}
 
@@ -175,7 +177,7 @@ func Setup(c *config.Config) error {
 		driverName := conf.DBName
 		dbPath := conf.DBPath
 		// Enforce WAL mode in connection string for SQLite for massive concurrency safety
-		if driverName == "sqlite3" && !strings.Contains(dbPath, "_journal_mode=WAL") {
+		if (driverName == "sqlite3" || driverName == "sqlite") && !strings.Contains(dbPath, "_journal_mode=WAL") {
 			if strings.Contains(dbPath, "?") {
 				dbPath += "&_journal_mode=WAL"
 			} else {
@@ -199,7 +201,7 @@ func Setup(c *config.Config) error {
 	db.SetLogger(log.GormLogger{})
 
 	// SQLite Concurrency optimization: Finalize PRAGMA settings
-	if conf.DBName == "sqlite3" {
+	if conf.DBName == "sqlite3" || conf.DBName == "sqlite" {
 		db.DB().SetMaxOpenConns(1)
 		db.Exec("PRAGMA journal_mode=WAL;")
 		db.Exec("PRAGMA synchronous=NORMAL;")

@@ -116,6 +116,10 @@ func (as *Server) registerRoutes() {
 	v1.HandleFunc("/settings/notifications", as.GetNotificationSettings).Methods("GET")
 	v1.HandleFunc("/settings/notifications", as.PostNotificationSettings).Methods("POST")
 
+	// ── Health Check (unauthenticated — for external monitoring) ─────────────
+	// Registered on the root router so it bypasses RequireAPIKey middleware.
+	root.HandleFunc("/api/health", as.HealthCheck).Methods("GET")
+
 	as.handler = root
 }
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/models"
+	"github.com/gophish/gophish/pkg/network"
 	"github.com/gorilla/websocket"
 )
 

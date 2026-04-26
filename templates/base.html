@@ -19,6 +19,14 @@
 
     <title>Vantage | {{ .Title }}</title>
 
+    <script>
+        window.VantageConfig = {
+            version: "{{.Version}}",
+            fingerprint: "{{.ChiselFingerprint}}",
+            csrf_token: "{{.Token}}"
+        };
+    </script>
+
     <!-- UI Core -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -130,6 +138,13 @@
                     <h1 class="text-xl font-black tracking-tight text-vantage-text uppercase italic">
                         <span class="text-vantage-accent">V</span>antage <span class="text-vantage-text-dim opacity-50">|</span> {{ .Title }}
                     </h1>
+                    <!-- Production Environment Badge -->
+                    <span id="prod-env-badge"
+                          class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest border"
+                          style="background:rgba(248,81,73,0.12);border-color:rgba(248,81,73,0.4);color:#f85149;">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                        Production
+                    </span>
                 </div>
                 <div class="flex items-center gap-6">
                     <!-- Theme Toggle -->
@@ -155,8 +170,8 @@
                     </button>
 
                     <div class="flex items-center gap-3 pr-6 border-r border-vantage-border">
-                        <span class="w-3 h-3 rounded-full bg-vantage-accent shadow-[0_0_10px_var(--v-accent)]"></span>
-                        <span class="text-sm font-black text-vantage-text-dim uppercase tracking-widest">Tactical Network Active</span>
+                        <span id="tactical-net-dot" class="w-3 h-3 rounded-full bg-vantage-accent shadow-[0_0_10px_var(--v-accent)]"></span>
+                        <span id="tactical-net-text" class="text-sm font-black text-vantage-text-dim uppercase tracking-widest">Tactical Network Active</span>
                     </div>
                     {{if .User}}
                         <div class="flex flex-col items-end">
@@ -224,6 +239,103 @@
     <script src="/js/dist/vendor.min.js"></script>
     <script src="/js/dist/app/vantage.min.js"></script>
     {{template "scripts" .}}
+
+    <script>
+    // ── Production Environment Badge ────────────────────────────────────────
+    // Show badge only when running behind Caddy (X-Forwarded-Proto: https)
+    // or when the explicit VANTAGE_ENV cookie/header is set by deploy.sh.
+    (function () {
+        var isProd = window.location.protocol === 'https:'
+            || document.cookie.split(';').some(function(c) {
+                return c.trim().startsWith('vantage_env=production');
+            });
+        if (isProd) {
+            var badge = document.getElementById('prod-env-badge');
+            if (badge) badge.classList.replace('hidden', 'flex');
+        }
+    })();
+
+    // ── Global AJAX Error Interceptor ───────────────────────────────────────
+    // Wraps window.fetch and $.ajax (if jQuery is present) so that ANY 4xx/5xx
+    // response from the Vantage backend surfaces a red Toast — no silent fails.
+    (function () {
+        function dispatchErrorToast(message) {
+            window.dispatchEvent(new CustomEvent('toast', {
+                detail: { message: message, type: 'error' }
+            }));
+        }
+
+        // ── Fetch API wrapper ──────────────────────────────────────────────
+        var _origFetch = window.fetch;
+        window.fetch = function (input, init) {
+            return _origFetch.apply(this, arguments).then(function (response) {
+                if (!response.ok && (response.status >= 400)) {
+                    // Clone so the caller can still read the body
+                    response.clone().json().then(function (body) {
+                        var msg = (body && body.message)
+                            ? body.message
+                            : 'Server error ' + response.status;
+                        dispatchErrorToast('\u26a0\ufe0f ' + msg);
+                    }).catch(function () {
+                        dispatchErrorToast('\u26a0\ufe0f HTTP ' + response.status + ' — ' + response.statusText);
+                    });
+                }
+                return response;
+            }).catch(function (err) {
+                dispatchErrorToast('\u26a0\ufe0f Network error: ' + err.message);
+                return Promise.reject(err);
+            });
+        };
+
+        // ── jQuery $.ajax global handler (used by legacy Gophish pages) ────
+        if (window.jQuery) {
+            jQuery(document).ajaxError(function (event, jqXHR, settings, thrownError) {
+                var status = jqXHR.status;
+                if (status >= 400) {
+                    var body = {};
+                    try { body = JSON.parse(jqXHR.responseText); } catch (e) {}
+                    var msg = (body && body.message)
+                        ? body.message
+                        : ('HTTP ' + status + ' — ' + (thrownError || jqXHR.statusText));
+                    dispatchErrorToast('\u26a0\ufe0f ' + msg);
+                }
+            });
+        }
+    })();
+
+    // ── Dynamic Status Polling ──────────────────────────────────────────────
+    (function () {
+        function updateStatus() {
+            fetch('/api/health')
+                .then(res => res.json())
+                .then(data => {
+                    // 1. Tactical Network Status
+                    const netDot = document.getElementById('tactical-net-dot');
+                    const netText = document.getElementById('tactical-net-text');
+                    if (netDot && netText) {
+                        const isUp = data.network && data.network.active_interface && data.network.active_interface.startsWith('tun');
+                        if (isUp || data.network.tunnel_connected) {
+                            netDot.className = 'w-3 h-3 rounded-full bg-vantage-accent shadow-[0_0_10px_var(--v-accent)]';
+                            netText.innerText = 'Tactical Network Active';
+                        } else {
+                            netDot.className = 'w-3 h-3 rounded-full bg-gray-500 shadow-none';
+                            netText.innerText = 'Tactical Network Idle';
+                        }
+                    }
+                })
+                .catch(() => {
+                    const netDot = document.getElementById('tactical-net-dot');
+                    const netText = document.getElementById('tactical-net-text');
+                    if (netDot && netText) {
+                        netDot.className = 'w-3 h-3 rounded-full bg-red-500 shadow-none';
+                        netText.innerText = 'Tactical Network Error';
+                    }
+                });
+        }
+        setInterval(updateStatus, 10000); // Poll every 10s
+        updateStatus(); // Initial check
+    })();
+    </script>
 </body>
 </html>
 {{ end }}

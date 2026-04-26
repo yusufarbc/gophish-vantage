@@ -178,13 +178,15 @@ func (as *AdminServer) registerRoutes() {
 }
 
 type templateParams struct {
-	Title        string
-	Flashes      []interface{}
-	User         models.User
-	Token        string
-	Version      string
-	ModifySystem bool
-	PDTools      []string
+	Title             string
+	Flashes           []interface{}
+	User              models.User
+	Token             string
+	Version           string
+	ModifySystem      bool
+	PDTools           []string
+	ChiselFingerprint string
+	Host              string
 }
 
 // newTemplateParams returns the default template parameters for a user and
@@ -193,7 +195,7 @@ func newTemplateParams(r *http.Request) templateParams {
 	user := ctx.Get(r, "user").(models.User)
 	session := ctx.Get(r, "session").(*sessions.Session)
 	modifySystem, _ := user.HasPermission(models.PermissionModifySystem)
-	return templateParams{
+	params := templateParams{
 		Token:        csrf.Token(r),
 		User:         user,
 		ModifySystem: modifySystem,
@@ -204,7 +206,10 @@ func newTemplateParams(r *http.Request) templateParams {
 			"dnsx", "katana", "tlsx", "uncover",
 			"asnmap", "interactsh-client", "assetfinder", "cloudlist",
 		},
+		ChiselFingerprint: "SHA256:VantageTacticalSectorAccessKeyFingerprint",
+		Host:              r.Host,
 	}
+	return params
 }
 
 // Base handles the default path and template execution

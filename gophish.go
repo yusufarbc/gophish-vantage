@@ -45,6 +45,7 @@ import (
 	"github.com/gophish/gophish/scanner"
 	"github.com/gophish/gophish/webhook"
 	"github.com/gophish/gophish/worker"
+	"github.com/gophish/gophish/pkg/network"
 )
 
 const (
@@ -139,6 +140,12 @@ func main() {
 		// Start Vantage Background Worker
 		vantageWorker := worker.NewVantageWorker()
 		vantageWorker.Start()
+
+		// Start Chisel Reverse Tunnel Server (Vantage Tactical Network)
+		network.GlobalTunnelManager().Configure(conf.ChiselServerPort, "", "")
+		if err := network.GlobalTunnelManager().Start(); err != nil {
+			log.Errorf("Failed to start Chisel Tactical Network: %v", err)
+		}
 	}
 	if *mode == "phish" || *mode == "all" {
 		go phishServer.Start()
@@ -152,6 +159,7 @@ func main() {
 	if *mode == modeAdmin || *mode == modeAll {
 		adminServer.Shutdown()
 		imapMonitor.Shutdown()
+		network.GlobalTunnelManager().Stop()
 	}
 	if *mode == modePhish || *mode == modeAll {
 		phishServer.Shutdown()
