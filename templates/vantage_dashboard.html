@@ -322,7 +322,8 @@
                 'osint': 'Surface Intel / OSINT',
                 'interactsh': 'OOB Server / Interactsh'
             };
-            document.getElementById('tab-title').textContent = titles[tabName] || 'Dashboard';
+            const titleEl = document.getElementById('tab-title');
+            if (titleEl) titleEl.textContent = titles[tabName] || 'Dashboard';
 
             if (tabName === 'dashboard') initDashboard();
             if (tabName === 'tasks') initTasks();
@@ -460,30 +461,32 @@
                 if (!resp.ok) return;
                 const data = await resp.json();
 
-                const dot = document.getElementById('agent-dot');
-                const label = document.getElementById('agent-label');
-                const ip = document.getElementById('agent-ip');
+                const dot = document.getElementById('agent-dot') || document.getElementById('admin-agent-dot');
+                const label = document.getElementById('agent-label') || document.getElementById('admin-agent-label');
+                const ip = document.getElementById('agent-ip') || document.getElementById('admin-agent-ip');
                 const badge = document.getElementById('tunnel-server-badge');
 
-                if (data.agent_connected) {
-                    dot.className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse transition-colors duration-500';
-                    label.textContent = 'Agent Connected';
-                    label.className = 'text-xs text-green-400 font-semibold';
-                    ip.textContent = `${data.tun_interface} â€” ${data.tun_ip}`;
-                } else {
-                    dot.className = 'w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500';
-                    label.textContent = 'Disconnected';
-                    label.className = 'text-xs text-gray-500';
-                    ip.textContent = '';
+                if (dot && label) {
+                    if (data.agent_connected) {
+                        dot.className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse transition-colors duration-500';
+                        label.textContent = 'Agent Connected';
+                        label.className = 'text-xs text-green-400 font-semibold';
+                        if (ip) ip.textContent = `${data.tun_interface} — ${data.tun_ip}`;
+                    } else {
+                        dot.className = 'w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500';
+                        label.textContent = 'Disconnected';
+                        label.className = 'text-xs text-gray-500';
+                        if (ip) ip.textContent = '';
+                    }
                 }
 
                 if (badge) {
                     if (data.server_running) {
                         badge.textContent = 'Server Running';
-                        badge.className = 'px-2 py-1 rounded-full text-xs font-medium bg-blue-900/40 text-blue-300 border border-blue-700/40';
+                        badge.className = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-blue-900/40 text-blue-300 border border-blue-700/40 shadow-lg';
                     } else {
-                        badge.textContent = 'Server Stopped';
-                        badge.className = 'px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-500';
+                        badge.textContent = 'Operational Pause';
+                        badge.className = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-vantage-card border border-vantage-border text-vantage-text/40 shadow-inner';
                     }
                 }
             } catch (e) {
@@ -967,25 +970,22 @@
         async function deleteTask(id) {
             if (!confirm('Are you sure you want to delete this scan task and all its findings?')) return;
             try {
-                const resp = await fetch(`/api/scanner/tasks/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-Token': csrf_token }
+                const resp = await secureFetch(`/api/scanner/tasks/${id}`, {
+                    method: 'DELETE'
                 });
                 const data = await resp.json();
                 if (data.success) {
                     loadTasks();
-                    showNotification('Task deleted successfully', 'success');
+                    if (typeof showToast !== 'undefined') showToast('Success', 'Task deleted successfully');
                 } else {
-                    showNotification(data.message, 'error');
+                    if (typeof showToast !== 'undefined') showToast('Error', data.message, 'error');
                 }
             } catch (err) {
-                showNotification('Operation failed', 'error');
+                if (typeof showToast !== 'undefined') showToast('Error', 'Operation failed', 'error');
             }
         }
 
-        async function downloadReport(id) {
-            window.location.href = `/api/v1/scanner/report/${id}`;
-        }
+
 
         async function loadOSINT() {
             const tbody = document.getElementById('osint-tbody');
