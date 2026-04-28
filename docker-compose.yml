@@ -1,5 +1,5 @@
 
-version: '3.8'
+
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # VANTAGE: Enterprise Security Operations Hub - Docker Compose Orchestration
@@ -27,9 +27,7 @@ services:
       - NET_RAW
       - SYS_PTRACE
     
-    # Block unnecessary capabilities (security hardening)
-    cap_drop:
-      - ALL
+
     
     # Kernel networking device: Required for TUN/TAP tunneling
     devices:

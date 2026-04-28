@@ -87,9 +87,11 @@ COPY --from=app-builder /app/VERSION /opt/vantage/VERSION
 COPY docker/docker-entrypoint.sh /opt/vantage/docker-entrypoint.sh
 
 # Prepare directories
-RUN mkdir -p /opt/vantage/db /home/vantage/.nuclei-templates /home/vantage/.config/nuclei && \
-    chown -R vantage:vantage /opt/vantage /home/vantage/.nuclei-templates /home/vantage/.config/nuclei && \
+RUN mkdir -p /opt/vantage/db /home/vantage/.nuclei-templates /home/vantage/.config && \
+    mkdir -p /home/vantage/.config/subfinder /home/vantage/.config/uncover /home/vantage/.config/asnmap /home/vantage/.config/interactsh-client && \
+    chown -R vantage:vantage /opt/vantage /home/vantage && \
     chmod +x /opt/vantage/docker-entrypoint.sh /opt/vantage/vantage-server
+
 
 # Set Linux capabilities for network operations
 RUN set -eux; \

@@ -1,5 +1,5 @@
 
-version: '3.8'
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VANTAGE — Production Docker Compose
@@ -35,8 +35,7 @@ services:
     # NET_ADMIN: TUN/TAP device management (Chisel reverse tunnel)
     # NET_RAW:   Raw socket access (Naabu SYN scanning, httpx)
     # SYS_PTRACE is intentionally EXCLUDED for hardened prod.
-    cap_drop:
-      - ALL
+
     cap_add:
       - NET_ADMIN
       - NET_RAW

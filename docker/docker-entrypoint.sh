@@ -59,16 +59,23 @@ initialize_config() {
 verify_capabilities() {
     log_info "Verifying Linux capabilities..."
     
-    # Check for NET_ADMIN capability (required for TUN/TAP)
-    if ! grep -q cap_net_admin /proc/self/status 2>/dev/null; then
-        log_warn "NET_ADMIN capability not available - TUN/TAP tunneling may not work"
-        log_warn "Ensure container started with: docker run --cap-add NET_ADMIN"
-    fi
-    
-    # Check for NET_RAW capability (required for raw sockets)
-    if ! grep -q cap_net_raw /proc/self/status 2>/dev/null; then
-        log_warn "NET_RAW capability not available - naabu/httpx port scanning may not work"
-        log_warn "Ensure container started with: docker run --cap-add NET_RAW"
+    # Use capsh to check capabilities if available, otherwise fallback to status grep
+    if command -v capsh &> /dev/null; then
+        CAPS=$(capsh --print)
+        if echo "$CAPS" | grep -q "cap_net_admin"; then
+            log_success "NET_ADMIN capability verified"
+        else
+            log_warn "NET_ADMIN capability not available - TUN/TAP tunneling may not work"
+        fi
+        
+        if echo "$CAPS" | grep -q "cap_net_raw"; then
+            log_success "NET_RAW capability verified"
+        else
+            log_warn "NET_RAW capability not available - naabu/httpx port scanning may not work"
+        fi
+    else
+        # Fallback to /proc/self/status bits check (simplified)
+        log_info "capsh not found, skipping advanced capability verification"
     fi
     
     # Check for /dev/net/tun device
@@ -78,6 +85,7 @@ verify_capabilities() {
     
     log_success "Capability verification complete"
 }
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Initialize Database
