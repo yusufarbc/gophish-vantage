@@ -8,11 +8,11 @@
             <div class="w-10 h-10 rounded-xl bg-vantage-accent/10 flex items-center justify-center border border-vantage-accent/20">
                 <svg class="w-5 h-5 text-vantage-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-            <h3 class="text-lg font-black uppercase tracking-widest text-vantage-text italic">Scan Missions</h3>
+            <h3 class="text-lg font-black uppercase tracking-widest text-vantage-text italic">Scan Tasks</h3>
         </div>
         <button onclick="openTaskModal()" class="group bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-vantage-accent/20 flex items-center gap-3">
             <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
-            Initiate Scan
+            Create Task
         </button>
     </div>
 
@@ -20,10 +20,10 @@
         <table class="w-full text-left text-sm border-separate border-spacing-y-2">
             <thead class="text-vantage-text-dim font-black uppercase tracking-widest text-xs">
                 <tr>
-                    <th class="px-4 py-1">Mission</th>
-                    <th class="px-4 py-1 text-center">Engine Status</th>
-                    <th class="px-4 py-1">Operational Progress</th>
-                    <th class="px-4 py-1">Target Scope</th>
+                    <th class="px-4 py-1">Task Name</th>
+                    <th class="px-4 py-1 text-center">Status</th>
+                    <th class="px-4 py-1">Scan Progress</th>
+                    <th class="px-4 py-1">Targets</th>
                     <th class="px-4 py-1 text-right">Actions</th>
                 </tr>
             </thead>
@@ -63,11 +63,11 @@
                                 </svg>
                             </div>
                             <div class="space-y-2">
-                                <p class="text-xl font-black text-vantage-text-dim italic">Tactical Silence</p>
-                                <p class="text-base text-vantage-text-dim/60 font-medium">No active scan operations detected in the current sector.</p>
+                                <p class="text-xl font-black text-vantage-text-dim italic">No Active Tasks</p>
+                                <p class="text-base text-vantage-text-dim/60 font-medium">No active scan tasks found in the system.</p>
                             </div>
                             <button onclick="openTaskModal()" class="text-xs font-black uppercase tracking-widest text-vantage-accent hover:text-vantage-text transition-all border-b-2 border-vantage-accent/30 hover:border-vantage-accent flex items-center gap-2 py-1">
-                                Initiate Primary Protocol
+                                Create New Scan Task
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>

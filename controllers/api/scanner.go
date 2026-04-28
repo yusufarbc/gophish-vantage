@@ -18,19 +18,6 @@ import (
 	"time"
 )
 
-// ScanRequest is the JSON body for POST /api/scanner/scan
-type ScanRequest struct {
-	TaskName      string   `json:"task_name,omitempty"`
-	Target        string   `json:"target"`
-	ScheduleAt    string   `json:"schedule_at,omitempty"` // RFC3339 format
-	Tool          string   `json:"tool"`
-	EnabledTools  []string `json:"enabled_tools,omitempty"`
-	Parallel      bool     `json:"parallel,omitempty"`
-	Flags         []string `json:"flags,omitempty"`
-	DiscoveryMode bool     `json:"discovery_mode,omitempty"`
-	Interface     string   `json:"interface,omitempty"` // optional: bind scan to this network interface (e.g. "tun0")
-}
-
 // ScanResponse indicates scan was accepted (HTTP 202)
 type ScanResponse struct {
 	Message string `json:"message"`
@@ -51,7 +38,7 @@ type StatusResponse struct {
 // Returns 202 Accepted immediately; scan runs in background.
 // WebSocket clients connected to /ws/scanner/logs receive live output.
 func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
-	var req ScanRequest
+	var req models.ScanRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		JSONResponse(w, models.Response{Success: false, Message: "Invalid JSON body"}, http.StatusBadRequest)
@@ -66,33 +53,33 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uid := ctx.Get(r, "user_id").(int64)
-	mode := "single"
-	if req.DiscoveryMode {
-		mode = "discovery"
-	} else if len(req.EnabledTools) > 0 {
-		mode = "task"
-	}
-	tools := req.EnabledTools
-	if len(tools) == 0 && req.Tool != "" {
-		tools = []string{req.Tool}
-	}
-	var scheduledTime *time.Time
-	if req.ScheduleAt != "" {
-		t, err := time.Parse(time.RFC3339, req.ScheduleAt)
-		if err != nil {
-			JSONResponse(w, models.Response{Success: false, Message: "Invalid schedule_at format (use RFC3339)"}, http.StatusBadRequest)
-			return
-		}
-		scheduledTime = &t
+	
+	// Determine Mode
+	mode := "task"
+	if len(req.Tools) == 1 && req.Tools[0] != "task" {
+		mode = req.Tools[0]
 	}
 
-	scanRecord, err := models.CreateScanTask(uid, req.TaskName, req.Target, req.Interface, mode, tools, scheduledTime)
+	var scheduledTime *time.Time
+	if req.Schedule != "" {
+		t, err := time.Parse(time.RFC3339, req.Schedule)
+		if err == nil {
+			scheduledTime = &t
+		}
+	}
+
+	scanRecord, err := models.CreateScanTask(uid, req.Name, req.Target, req.Interface, mode, req.Tools, scheduledTime)
 	if err != nil {
 		JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusInternalServerError)
 		return
 	}
 
-	// If scheduled for future, don't run now. The worker will pick it up.
+	// Persist options if provided
+	if optBytes, err := json.Marshal(req.Options); err == nil {
+		models.UpdateScanOptions(scanRecord.ID, string(optBytes))
+	}
+
+	// If scheduled for future, don't run now.
 	if scheduledTime != nil && scheduledTime.After(time.Now()) {
 		JSONResponse(w, ScanResponse{
 			Message: "scan scheduled",
@@ -102,38 +89,31 @@ func (as *Server) StartScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Dispatch scan
-	var scanErr error
-	if req.DiscoveryMode {
-		scanErr = scanner.RunDiscovery(uid, scanRecord.ID, req.Target, req.Interface)
-	} else if len(req.EnabledTools) > 0 {
-		scanErr = scanner.RunTask(uid, scanRecord.ID, req.Target, req.Interface, req.EnabledTools, req.Parallel, req.Flags)
-	} else {
-		if req.Tool == "" {
-			req.Tool = "nuclei"
+	// Dispatch scan asynchronously
+	go func() {
+		var scanErr error
+		if mode == "discovery" {
+			scanErr = scanner.RunDiscovery(uid, scanRecord.ID, req.Target, req.Interface, req.Options)
+		} else if len(req.Tools) > 1 || (len(req.Tools) == 1 && req.Tools[0] == "task") {
+			scanErr = scanner.RunTask(uid, scanRecord.ID, req.Target, req.Interface, req.Tools, req.Options)
+		} else {
+			tool := "nuclei"
+			if len(req.Tools) == 1 {
+				tool = req.Tools[0]
+			}
+			scanErr = scanner.RunScannerTool(uid, scanRecord.ID, tool, req.Target, req.Interface, req.Options)
 		}
-		scanErr = scanner.RunScannerTool(uid, scanRecord.ID, req.Tool, req.Target, req.Interface, req.Flags)
-	}
 
-	if scanErr != nil {
-		JSONResponse(w, models.Response{Success: false, Message: scanErr.Error()}, http.StatusConflict)
-		return
-	}
+		if scanErr != nil {
+			log.Errorf("Scan dispatch failed: %v", scanErr)
+		}
+	}()
 
-	mode = req.Tool
-	if req.DiscoveryMode {
-		mode = "discovery (subfinder → httpx → nuclei)"
-	} else if len(req.EnabledTools) > 0 {
-		mode = "task"
-	}
-
-	response := ScanResponse{
-		Message: "scan started",
+	JSONResponse(w, ScanResponse{
+		Message: "scan queued and starting",
 		Target:  req.Target,
 		Mode:    mode,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	}, http.StatusAccepted)
 }
 
 // ── POST /api/scanner/stop/:id ──────────────────────────────────────────────

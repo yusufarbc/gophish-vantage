@@ -14,6 +14,7 @@ type Scan struct {
 	Target            string     `gorm:"not null;index:idx_scan_target" json:"target"` // High-frequency query
 	ToolName          string     `gorm:"index:idx_scan_tool" json:"tool_name"`
 	EnabledTools      JSONList   `gorm:"type:text" json:"enabled_tools"`
+	Options           string     `gorm:"type:text" json:"options"` // Serialized ScanOptions JSON
 	OutboundInterface string     `gorm:"size:64;index" json:"outbound_interface"`
 	Mode              string     `gorm:"index" json:"mode"`
 	Status            string     `gorm:"default:'queued';index:idx_scan_status" json:"status"`

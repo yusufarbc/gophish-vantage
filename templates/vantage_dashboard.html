@@ -446,18 +446,18 @@
             try {
                 const resp = await secureFetch('/api/v1/tunnel/start', { method: 'POST' });
                 const data = await resp.json();
-                alert(data.message || 'Tunnel server started');
+                showToast(data.message || 'Tunnel server started', 'success');
                 pollAgentStatus();
-            } catch (e) { alert('Error: ' + e.message); }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function stopTunnel() {
             try {
                 const resp = await secureFetch('/api/v1/tunnel/stop', { method: 'POST' });
                 const data = await resp.json();
-                alert(data.message || 'Tunnel server stopped');
+                showToast(data.message || 'Tunnel server stopped', 'success');
                 pollAgentStatus();
-            } catch (e) { alert('Error: ' + e.message); }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function addRoute() {
@@ -763,7 +763,7 @@
         async function importTargets() {
             const input = document.getElementById('targets-input').value.trim();
             if (!input) {
-                alert('Please enter at least one target value.');
+                showToast('Please enter at least one target value.', 'error');
                 return;
             }
             try {
@@ -774,13 +774,13 @@
                 });
                 const data = await resp.json();
                 if (!resp.ok) {
-                    alert(data.message || 'Target import failed');
+                    showToast(data.message || 'Target import failed', 'error');
                     return;
                 }
                 document.getElementById('targets-input').value = '';
                 loadTargets();
             } catch (e) {
-                alert('Import error: ' + e.message);
+                showToast('Import error: ' + e.message, 'error');
             }
         }
 
@@ -864,7 +864,7 @@
             const duration = document.getElementById('stress-duration').value.trim();
             const iface = document.getElementById('stress-interface').value;
             if (!target_url) {
-                alert('Stress test target URL is required.');
+                showToast('Stress test target URL is required.', 'error');
                 return;
             }
             const resp = await secureFetch('/api/scanner/stress/start', {
@@ -874,10 +874,10 @@
             });
             const data = await resp.json();
             if (!resp.ok) {
-                alert(data.message || 'Stress test failed to start');
+                showToast(data.message || 'Stress test failed to start', 'error');
                 return;
             }
-            alert('Stress test started');
+            showToast('Stress test started', 'success');
             initTasks();
         }
 

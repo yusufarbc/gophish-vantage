@@ -176,12 +176,12 @@ func Setup(c *config.Config) error {
 	for {
 		driverName := conf.DBName
 		dbPath := conf.DBPath
-		// Enforce WAL mode in connection string for SQLite for massive concurrency safety
+		// Enforce WAL mode and busy timeout in connection string for SQLite for massive concurrency safety
 		if (driverName == "sqlite3" || driverName == "sqlite") && !strings.Contains(dbPath, "_journal_mode=WAL") {
 			if strings.Contains(dbPath, "?") {
-				dbPath += "&_journal_mode=WAL"
+				dbPath += "&_journal_mode=WAL&_busy_timeout=5000"
 			} else {
-				dbPath += "?_journal_mode=WAL"
+				dbPath += "?_journal_mode=WAL&_busy_timeout=5000"
 			}
 		}
 

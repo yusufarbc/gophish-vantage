@@ -7,6 +7,27 @@ import (
 	"time"
 )
 
+// ScanOptions holds granular configurations for each tool in the Vantage engine.
+type ScanOptions struct {
+	NucleiTags       []string `json:"nuclei_tags"`
+	NucleiSeverities []string `json:"nuclei_severities"`
+	NaabuPorts       string   `json:"naabu_ports"`
+	SubfinderActive  bool     `json:"subfinder_active"`
+	HttpxTech        bool     `json:"httpx_tech"`
+	KatanaDepth      int      `json:"katana_depth"`
+	Parallel         bool     `json:"parallel"`
+}
+
+// ScanRequest is the incoming payload from the UI Scan Wizard.
+type ScanRequest struct {
+	Name      string      `json:"name"`
+	Target    string      `json:"target"`
+	Interface string      `json:"interface"`
+	Tools     []string    `json:"tools"`
+	Options   ScanOptions `json:"options"`
+	Schedule  string      `json:"schedule"`
+}
+
 // JSONList is a JSON-backed string list for scanner tools or settings.
 type JSONList string
 
@@ -148,6 +169,11 @@ func (s *Scan) GetToolList() []string {
 	}
 	json.Unmarshal([]byte(s.EnabledTools), &tools)
 	return tools
+}
+
+// UpdateScanOptions persists the serialized ScanOptions JSON for a scan task.
+func UpdateScanOptions(id uint, options string) error {
+	return db.Model(&Scan{}).Where("id = ?", id).Update("options", options).Error
 }
 
 func DeleteScanTask(uid int64, id uint) error {

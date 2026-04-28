@@ -201,7 +201,7 @@ func InitDefaultService() {
 	}
 }
 
-func (s *VantageScanService) RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, extraFlags []string) error {
+func (s *VantageScanService) RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, opts models.ScanOptions) error {
 	if err := ensureInterfaceForScan(toolName, target, ifaceName); err != nil { return err }
 	if err := s.State.AcquireLock(toolName, target); err != nil { return err }
 	
@@ -216,7 +216,7 @@ func (s *VantageScanService) RunScannerTool(userID int64, scanID uint, toolName,
 		}()
 
 		_ = models.UpdateScanTaskProgress(scanID, "running", 20)
-		args := buildScannerArgs(toolName, target, ifaceName, extraFlags)
+		args := buildScannerArgs(toolName, target, ifaceName, opts)
 		
 		// Structured logging with slog
 		log := logger.With("task_id", scanID, "tool", toolName, "target", target, "interface", ifaceName)
@@ -263,7 +263,7 @@ func (s *VantageScanService) RunScannerTool(userID int64, scanID uint, toolName,
 	return nil
 }
 
-func (s *VantageScanService) RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
+func (s *VantageScanService) RunDiscovery(userID int64, scanID uint, target, ifaceName string, opts models.ScanOptions) error {
 	if err := ensureInterfaceForScan("discovery", target, ifaceName); err != nil { return err }
 	if err := s.State.AcquireLock("discovery", target); err != nil { return err }
 
@@ -284,7 +284,7 @@ func (s *VantageScanService) RunDiscovery(userID int64, scanID uint, target, ifa
 		// ── PHASE 1: OSINT & Asset Discovery ──────────────────────────────────
 		_ = models.UpdateScanTaskProgress(scanID, "running", 5)
 		emitLog("[VANTAGE] Phase 1a — Subdomain Discovery (Subfinder)")
-		subArgs := buildScannerArgs("subfinder", target, ifaceName, nil)
+		subArgs := buildScannerArgs("subfinder", target, ifaceName, opts)
 		subs, _ := s.Executor.Collect(ctx, userID, "subfinder", target, ifaceName, subArgs)
 		if ctx.Err() != nil { return }
 		
@@ -349,7 +349,7 @@ func (s *VantageScanService) RunDiscovery(userID int64, scanID uint, target, ifa
 	return nil
 }
 
-func (s *VantageScanService) RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, parallel bool, extraFlags []string) error {
+func (s *VantageScanService) RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, opts models.ScanOptions) error {
 	if err := ensureInterfaceForScan("task", target, ifaceName); err != nil { return err }
 	if err := s.State.AcquireLock("task", target); err != nil { return err }
 
@@ -366,14 +366,14 @@ func (s *VantageScanService) RunTask(userID int64, scanID uint, target, ifaceNam
 		RegisterScan(scanID, cancel)
 		defer UnregisterScan(scanID)
 
-		if parallel {
+		if opts.Parallel {
 			var wg sync.WaitGroup
 			for _, tool := range tools {
 				if ctx.Err() != nil { break }
 				wg.Add(1)
 				go func(t string) {
 					defer wg.Done()
-					args := buildScannerArgs(t, target, ifaceName, extraFlags)
+					args := buildScannerArgs(t, target, ifaceName, opts)
 					_ = s.Executor.Execute(ctx, userID, t, target, ifaceName, args)
 				}(tool)
 			}
@@ -383,7 +383,7 @@ func (s *VantageScanService) RunTask(userID int64, scanID uint, target, ifaceNam
 				if ctx.Err() != nil { break }
 				prog := 10 + (i * 80 / len(tools))
 				_ = models.UpdateScanTaskProgress(scanID, "running", prog)
-				args := buildScannerArgs(tool, target, ifaceName, extraFlags)
+				args := buildScannerArgs(tool, target, ifaceName, opts)
 				_ = s.Executor.Execute(ctx, userID, tool, target, ifaceName, args)
 			}
 		}
@@ -393,17 +393,17 @@ func (s *VantageScanService) RunTask(userID int64, scanID uint, target, ifaceNam
 
 // ── Legacy Entry Points for Backward Compatibility ───────────────────────────
 
-func RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, extraFlags []string) error {
+func RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, opts models.ScanOptions) error {
 	if DefaultScanService == nil { InitDefaultService() }
-	return DefaultScanService.RunScannerTool(userID, scanID, toolName, target, ifaceName, extraFlags)
+	return DefaultScanService.RunScannerTool(userID, scanID, toolName, target, ifaceName, opts)
 }
 
-func RunDiscovery(userID int64, scanID uint, target, ifaceName string) error {
+func RunDiscovery(userID int64, scanID uint, target, ifaceName string, opts models.ScanOptions) error {
 	if DefaultScanService == nil { InitDefaultService() }
-	return DefaultScanService.RunDiscovery(userID, scanID, target, ifaceName)
+	return DefaultScanService.RunDiscovery(userID, scanID, target, ifaceName, opts)
 }
 
-func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, parallel bool, extraFlags []string) error {
+func RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, opts models.ScanOptions) error {
 	if DefaultScanService == nil { InitDefaultService() }
-	return DefaultScanService.RunTask(userID, scanID, target, ifaceName, tools, parallel, extraFlags)
+	return DefaultScanService.RunTask(userID, scanID, target, ifaceName, tools, opts)
 }

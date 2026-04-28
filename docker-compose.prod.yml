@@ -1,240 +1,59 @@
-
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# VANTAGE — Production Docker Compose
-# One-click deployment on any Ubuntu VPS with Docker installed.
-#
-# Usage:
-#   cp .env.example .env && nano .env   # fill in secrets
-#   docker compose -f docker-compose.prod.yml up -d --build
-# ═══════════════════════════════════════════════════════════════════════════════
-
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "20m"
-    max-file: "5"
+version: '3.8'
 
 services:
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # vantage-core: Go application (Gophish + Scanner Engine)
-  # ─────────────────────────────────────────────────────────────────────────────
-  vantage-core:
+  vantage:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        BUILD_ENV: production
-    image: vantage:prod
-    container_name: vantage_core
-    restart: unless-stopped
-
-    # ── Network capabilities ─────────────────────────────────────────────────
-    # NET_ADMIN: TUN/TAP device management (Chisel reverse tunnel)
-    # NET_RAW:   Raw socket access (Naabu SYN scanning, httpx)
-    # SYS_PTRACE is intentionally EXCLUDED for hardened prod.
-
+    container_name: vantage-app
+    restart: always
+    # Drop all privileges by default, but specifically add back those required
+    # for Naabu (NET_RAW/NET_ADMIN) and Chisel TUN (NET_ADMIN).
+    cap_drop:
+      - ALL
     cap_add:
       - NET_ADMIN
       - NET_RAW
-
-    # Kernel TUN device (required for Chisel L3 tunneling)
-    devices:
-      - /dev/net/tun:/dev/net/tun
-
-    # Prevent privilege escalation even with capabilities above
     security_opt:
       - no-new-privileges:true
-
-    # ── Ports ────────────────────────────────────────────────────────────────
-    # 3333 and 8080 are NEVER exposed to the host; Caddy is the only entry point.
-    # 9090 (Chisel agent listener) IS host-exposed so agents can connect.
-    expose:
-      - "3333"   # Admin API — proxied by Caddy
-      - "8080"   # Phishing listener — proxied by Caddy
     ports:
-      - "127.0.0.1:9090:9090"  # Chisel tunnel listener (loopback + explicit)
-
-    # ── Persistent volumes ───────────────────────────────────────────────────
+      - "3333:3333" # Admin Dashboard
+      - "8080:8080" # Phishing Listener (Go app port 8080)
     volumes:
-      # SQLite database — survives container restarts and VPS reboots
-      - vantage_db:/opt/vantage/db
-
-      # Nuclei templates — cached to avoid re-downloading (can be GBs)
-      - nuclei_templates:/home/vantage/.nuclei-templates
-
-      # Production config (read-only so the container can't mutate it)
-      - ./config.json:/opt/vantage/config.json:ro
-
-    # ── Environment ──────────────────────────────────────────────────────────
+      - ./vantage_data:/opt/vantage/vantage_data
+      - ./vantage_data/vantage.db:/opt/vantage/vantage.db
+      - ./vantage_data/logs:/opt/vantage/static/endpoint/logs
+      - ./config.json:/opt/vantage/config.json
     environment:
-      DB_TYPE:  sqlite3
-      DB_PATH:  /opt/vantage/db/vantage.db
-
-      # Gophish admin bound only to container-internal interface
-      GOPHISH_ADMIN_BIND: "0.0.0.0:3333"
-      GOPHISH_ADMIN_TLS:  "false"
-
-      # Phishing listener
-      GOPHISH_PHISH_BIND: "0.0.0.0:8080"
-
-      # SMTP relay (Postfix sidecar)
-      SMTP_HOST: postfix
-      SMTP_PORT: "25"
-
-      # Chisel tunnel
-      CHISEL_SERVER_PORT: "9090"
-
-      # Pass-through secret for first-boot admin credentials
-      GOPHISH_INITIAL_ADMIN_PASSWORD: "${GOPHISH_INITIAL_ADMIN_PASSWORD:-}"
-      GOPHISH_INITIAL_ADMIN_API_TOKEN: "${GOPHISH_INITIAL_ADMIN_API_TOKEN:-}"
-
-      LOG_LEVEL: info
-
-    # ── Resource limits ───────────────────────────────────────────────────────
-    # Prevents a runaway Nuclei scan from OOM-killing the host.
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 6G
-        reservations:
-          cpus: '1'
-          memory: 1G
-
-    # ── Health check ─────────────────────────────────────────────────────────
-    # Uses the new /api/health endpoint (no auth required).
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3333/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
+      - GOPROXY=https://proxy.golang.org,direct
+      - ADMIN_PASS_HASH=${VANTAGE_ADMIN_PASS_HASH}
     networks:
-      - vantage-internal
-    depends_on:
-      postfix:
-        condition: service_healthy
-    logging: *default-logging
+      - vantage-net
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # postfix: SMTP relay for phishing email delivery
-  # ─────────────────────────────────────────────────────────────────────────────
-  postfix:
-    image: mwader/postfix-relay:latest
-    container_name: vantage_postfix
-    restart: unless-stopped
-
-    security_opt:
-      - no-new-privileges:true
-
-    networks:
-      - vantage-internal
-
-    environment:
-      POSTFIX_myhostname:  "${DOMAIN:-vantage.local}"
-      POSTFIX_mynetworks:  "172.30.0.0/16 127.0.0.0/8"
-      # Optional: set if you need an upstream SMTP smarthost
-      # POSTFIX_relayhost: "[smtp.sendgrid.net]:587"
-
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-
-    healthcheck:
-      test: ["CMD-SHELL", "postfix status || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-
-    logging: *default-logging
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # caddy: TLS termination + auth gateway
-  # ─────────────────────────────────────────────────────────────────────────────
   caddy:
-    image: caddy:2.8-alpine
-    container_name: vantage_caddy
-    restart: unless-stopped
-
-    security_opt:
-      - no-new-privileges:true
-
-    # Caddy is the ONLY container with public internet exposure
+    image: caddy:latest
+    container_name: vantage-proxy
+    restart: always
     ports:
-      - "80:80"    # HTTP (ACME challenge + redirect to HTTPS)
-      - "443:443"  # HTTPS (admin + phishing, different virtual hosts)
-      - "443:443/udp"  # HTTP/3 (QUIC)
-
+      - "80:80"   # Public HTTP
+      - "443:443" # Public HTTPS
+      - "3334:3333" # Hardened Admin Access (mapping host 3334 to container 3333)
     volumes:
-      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data     # Let's Encrypt certificates
-      - caddy_config:/config # Caddy state
-      - caddy_logs:/var/log/caddy
-
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile
+      - vantage_proxy_data:/data
+      - vantage_proxy_config:/config
+      - ./vantage_data/caddy_logs:/var/log/caddy
     environment:
-      DOMAIN:           "${DOMAIN}"
-      ADMIN_SUBDOMAIN:  "${ADMIN_SUBDOMAIN:-admin.${DOMAIN}}"
-      ADMIN_USER:       "${ADMIN_USER:-vantage}"
-      ADMIN_HASH:       "${ADMIN_HASH}"
-      ACME_EMAIL:       "${ACME_EMAIL}"
-
+      - ADMIN_PASS_HASH=${VANTAGE_ADMIN_PASS_HASH}
     networks:
-      - vantage-internal
-      - vantage-public
-
+      - vantage-net
     depends_on:
-      vantage-core:
-        condition: service_healthy
+      - vantage
 
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/config/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 128M
-
-    logging: *default-logging
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# NETWORKS
-# vantage-internal: private back-channel between services
-# vantage-public:   only caddy gets a leg in this one (internet-facing)
-# ═══════════════════════════════════════════════════════════════════════════════
 networks:
-  vantage-internal:
-    driver: bridge
-    internal: true   # no outbound internet access for internal services
-    ipam:
-      config:
-        - subnet: 172.30.0.0/16
-  vantage-public:
+  vantage-net:
     driver: bridge
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# VOLUMES
-# All volumes use the local driver so they persist across `docker compose down`
-# and VPS reboots. Data lives in /var/lib/docker/volumes/ by default.
-# ═══════════════════════════════════════════════════════════════════════════════
 volumes:
-  vantage_db:         # SQLite database
-    driver: local
-  nuclei_templates:   # Nuclei template cache (~1 GB)
-    driver: local
-  caddy_data:         # ACME certs (DO NOT DELETE — causes cert-rate-limit issues)
-    driver: local
-  caddy_config:       # Caddy runtime config
-    driver: local
-  caddy_logs:         # Structured access logs
-    driver: local
+  vantage_proxy_data:
+  vantage_proxy_config:

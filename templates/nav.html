@@ -10,121 +10,149 @@
     
     <!-- Brand Header -->
     <div class="h-20 flex items-center px-6 border-b border-vantage-border shrink-0 bg-vantage-sidebar/80 backdrop-blur-xl">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 w-full">
             <div class="w-10 h-10 rounded-xl bg-vantage-accent flex items-center justify-center shadow-lg shadow-vantage-accent/20 rotate-3 transition-transform hover:rotate-0">
                 <svg class="w-6 h-6 text-vantage-bg -rotate-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
             </div>
-            <div class="flex flex-col">
-                <span class="text-2xl font-black tracking-tighter text-vantage-text italic uppercase leading-none">Vantage</span>
+            <div class="flex flex-col flex-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-2xl font-black tracking-tighter text-vantage-text italic uppercase leading-none">Vantage</span>
+                    <span class="px-2 py-0.5 rounded text-[8px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-tighter">Production</span>
+                </div>
                 <span class="text-xs font-mono text-vantage-accent font-bold tracking-[0.2em] mt-1 opacity-80 uppercase">Ops Hub</span>
             </div>
         </div>
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex-1 overflow-y-auto pt-6 pb-4 px-4 space-y-2">
+    <nav class="flex-1 overflow-y-auto pt-6 pb-4 px-4 space-y-2 custom-scrollbar">
         
         <!-- 1. Dashboard -->
-        <a href="/" class="group flex items-center justify-between py-3.5 px-5 rounded-xl bg-vantage-accent/10 text-vantage-accent font-bold mb-8 transition-all border border-vantage-accent/20 hover:bg-vantage-accent/20">
+        <a href="/" class="group flex items-center justify-between py-3.5 px-5 rounded-xl bg-vantage-accent/10 text-vantage-accent font-bold mb-6 transition-all border border-vantage-accent/20 hover:bg-vantage-accent/20 shadow-[0_0_15px_rgba(var(--v-accent-rgb),0.05)]">
             <div class="flex items-center gap-4">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                <span class="text-xl uppercase tracking-wider font-black">Overview</span>
+                <span class="text-sm uppercase tracking-[0.2em] font-black italic">Ops Dashboard</span>
             </div>
-            <div class="w-2.5 h-2.5 rounded-full bg-vantage-accent shadow-[0_0_10px_var(--v-accent)]"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-vantage-accent shadow-[0_0_8px_var(--v-accent)]"></div>
         </a>
 
-        <!-- 2. Security Scans & Assets -->
+        <!-- 2. Surface & Assets -->
         <div class="space-y-1">
             <button @click="expanded.scans = !expanded.scans" 
-                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none">
+                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none group">
                 <div class="flex items-center gap-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    <svg class="w-5 h-5 group-hover:text-vantage-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                     </svg>
-                    <span class="text-base font-black uppercase tracking-[0.15em]">Security & Assets</span>
+                    <span class="text-xs font-black uppercase tracking-[0.2em]">Surface & Assets</span>
                 </div>
                 <svg :class="expanded.scans ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <div x-show="expanded.scans" x-collapse>
-                <div class="pl-4 space-y-2 mt-1 border-l-2 border-vantage-border ml-6">
-                    <a href="/?tab=hosts" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Targets & Scope</a>
-                    <a href="/?tab=osint" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Surface / OSINT</a>
-                    <a href="/?tab=tasks" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Scan Tasks</a>
-                    <a href="/?tab=results" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Findings</a>
-                    <a href="/?tab=interactsh" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">OOB Server</a>
-                    <a href="/?tab=stress-tests" class="block py-2.5 px-4 rounded-lg text-lg text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Stress Tests</a>
+                <div class="pl-4 space-y-1 mt-1 border-l border-vantage-border/30 ml-7">
+                    <a href="/?tab=hosts" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Target Catalog</a>
+                    <a href="/?tab=osint" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Discovered Surface</a>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Phishing Simulation -->
+        <!-- 3. Security Scans -->
         <div class="space-y-1">
             <button @click="expanded.phishing = !expanded.phishing" 
-                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none">
+                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none group">
                 <div class="flex items-center gap-4">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    <svg class="w-5 h-5 group-hover:text-vantage-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                    <span class="text-sm font-black uppercase tracking-[0.15em]">Phishing Simulation</span>
+                    <span class="text-xs font-black uppercase tracking-[0.2em]">Security Scans</span>
                 </div>
                 <svg :class="expanded.phishing ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <div x-show="expanded.phishing" x-collapse>
-                <div class="pl-4 space-y-1 mt-1 border-l-2 border-vantage-border ml-6">
-                    <a href="/campaigns" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Campaigns</a>
-                    <a href="/groups" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Users & Groups</a>
-                    <a href="/templates" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Email Templates</a>
-                    <a href="/landing_pages" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Landing Pages</a>
-                    <a href="/sending_profiles" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Sending Profiles</a>
+                <div class="pl-4 space-y-1 mt-1 border-l border-vantage-border/30 ml-7">
+                    <a href="/?tab=tasks" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Active Operations</a>
+                    <a href="/?tab=results" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Vulnerability Findings</a>
+                    <a href="/?tab=stress-tests" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Resilience Tests</a>
                 </div>
             </div>
         </div>
 
-        <!-- 4. System Administration -->
+        <!-- 4. Listeners & OOB -->
+        <div class="space-y-1">
+            <a href="/?tab=interactsh" class="flex items-center gap-4 py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all group">
+                <svg class="w-5 h-5 group-hover:text-vantage-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span class="text-xs font-black uppercase tracking-[0.2em]">Listeners & OOB</span>
+            </a>
+        </div>
+
+        <!-- 5. Phishing (Campaigns) -->
+        <div class="space-y-1">
+            <button @click="expanded.campaigns = !expanded.campaigns" 
+                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none group">
+                <div class="flex items-center gap-4">
+                    <svg class="w-5 h-5 group-hover:text-vantage-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-xs font-black uppercase tracking-[0.2em]">Tactical Phishing</span>
+                </div>
+                <svg :class="expanded.campaigns ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div x-show="expanded.campaigns" x-collapse>
+                <div class="pl-4 space-y-1 mt-1 border-l border-vantage-border/30 ml-7">
+                    <a href="/campaigns" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Engagements</a>
+                    <a href="/groups" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Victim Groups</a>
+                    <a href="/templates" class="block py-2 px-4 rounded-lg text-xs font-bold text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Email Payloads</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. System & Resilience -->
         <div class="space-y-1">
             <button @click="expanded.system = !expanded.system" 
-                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none">
+                class="w-full flex items-center justify-between py-3 px-5 rounded-xl text-vantage-text-dim hover:text-vantage-text hover:bg-vantage-accent/5 transition-all outline-none group">
                 <div class="flex items-center gap-4">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 group-hover:text-vantage-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span class="text-sm font-black uppercase tracking-[0.15em]">System Administration</span>
+                    <span class="text-xs font-black uppercase tracking-[0.2em]">Resilience & Admin</span>
                 </div>
                 <svg :class="expanded.system ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <div x-show="expanded.system" x-collapse>
-                <div class="pl-4 space-y-1 mt-1 border-l-2 border-vantage-border ml-6">
-                    <a href="/users" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">User Management</a>
-                    <a href="/?tab=resilience-admin" class="flex items-center justify-between py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">
+                <div class="pl-4 space-y-1 mt-1 border-l border-vantage-border/30 ml-7">
+                    <a href="/?tab=resilience-admin" class="flex items-center justify-between py-2 px-4 rounded-lg text-[10px] font-black text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-all uppercase tracking-widest">
                         <span>Vantage Agent</span>
-                        <div class="flex items-center">
-                            <span class="relative flex h-2 w-2">
-                                <span id="sidebar-agent-ping" class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-0"></span>
-                                <span id="sidebar-agent-dot" class="relative inline-flex rounded-full h-2 w-2 bg-gray-600 shadow-none transition-all duration-500"></span>
-                            </span>
+                        <div class="flex items-center relative">
+                            <!-- Glowing Pulse Dot -->
+                            <span id="sidebar-agent-ping" class="absolute inline-flex h-3 w-3 rounded-full bg-emerald-500 opacity-0 animate-ping"></span>
+                            <span id="sidebar-agent-dot" class="relative inline-flex rounded-full h-2 w-2 bg-gray-600 transition-all duration-500 shadow-[0_0_8px_rgba(0,0,0,0.5)]"></span>
                         </div>
                     </a>
-
-                    <a href="/?tab=notifications" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Notification Settings</a>
-
+                    <a href="/users" class="block py-2 px-4 rounded-lg text-[10px] font-black text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">User Access</a>
+                    <a href="/?tab=notifications" class="block py-2 px-4 rounded-lg text-[10px] font-black text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors uppercase tracking-widest">Global Alerts</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Footer Meta -->
-    <div class="p-6 border-t border-vantage-border bg-vantage-header-bg/50 backdrop-blur-md">
+    <div class="p-6 border-t border-vantage-border bg-vantage-header-bg/30 backdrop-blur-md">
         <div class="flex flex-col gap-1">
-            <p class="text-sm text-vantage-text font-black tracking-widest uppercase italic">Vantage Platform</p>
+            <p class="text-[10px] text-vantage-text font-black tracking-[0.3em] uppercase italic opacity-80">Tactical Control Unit</p>
+            <p class="text-[8px] text-vantage-text-dim font-mono uppercase opacity-50">v2.4.0-PROD</p>
         </div>
     </div>
 </aside>

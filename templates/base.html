@@ -257,14 +257,19 @@
         }
     })();
 
+    // ── Global Toast Dispatcher ──────────────────────────────────────────
+    window.showToast = function(message, type = 'info') {
+        window.dispatchEvent(new CustomEvent('toast', {
+            detail: { message: message, type: type }
+        }));
+    };
+
     // ── Global AJAX Error Interceptor ───────────────────────────────────────
     // Wraps window.fetch and $.ajax (if jQuery is present) so that ANY 4xx/5xx
     // response from the Vantage backend surfaces a red Toast — no silent fails.
     (function () {
         function dispatchErrorToast(message) {
-            window.dispatchEvent(new CustomEvent('toast', {
-                detail: { message: message, type: 'error' }
-            }));
+            window.showToast(message, 'error');
         }
 
         // ── Fetch API wrapper ──────────────────────────────────────────────

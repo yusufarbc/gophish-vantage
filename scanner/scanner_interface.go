@@ -3,6 +3,8 @@ package scanner
 import (
 	"context"
 	"sync"
+
+	"github.com/gophish/gophish/models"
 )
 
 // ── Tool Interface ────────────────────────────────────────────────────────────
@@ -16,7 +18,7 @@ type Tool interface {
 
 	// BuildArgs constructs the full CLI argument list, including the binary name as args[0].
 	// The engine calls this; no tool-specific arg logic belongs in the engine.
-	BuildArgs(target, ifaceName string, extra []string) []string
+	BuildArgs(target, ifaceName string, opts models.ScanOptions) []string
 
 	// ExtractTarget pulls the primary target identifier from a tool's JSON output object.
 	// Returns "" if the field is absent or not a string.
@@ -87,9 +89,9 @@ func (r *ToolRegistry) Names() []string {
 
 // ScanService defines the core orchestration logic for different types of scans.
 type ScanService interface {
-	RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, extraFlags []string) error
-	RunDiscovery(userID int64, scanID uint, target, ifaceName string) error
-	RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, parallel bool, extraFlags []string) error
+	RunScannerTool(userID int64, scanID uint, toolName, target, ifaceName string, opts models.ScanOptions) error
+	RunDiscovery(userID int64, scanID uint, target, ifaceName string, opts models.ScanOptions) error
+	RunTask(userID int64, scanID uint, target, ifaceName string, tools []string, opts models.ScanOptions) error
 }
 
 // ── ToolExecutor Interface ────────────────────────────────────────────────────

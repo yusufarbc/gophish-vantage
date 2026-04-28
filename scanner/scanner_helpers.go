@@ -2,23 +2,27 @@ package scanner
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 
+	"github.com/gophish/gophish/models"
 	"github.com/gophish/gophish/pkg/network"
 )
 
 // buildScannerArgs constructs the CLI argument slice for a given PD tool.
 // It delegates to the Tool registry when possible so that argument logic
 // stays exclusively in tools.go, not duplicated here.
-func buildScannerArgs(toolName, target, ifaceName string, extra []string) []string {
+// buildScannerArgs constructs the CLI argument slice for a given PD tool.
+// It delegates to the Tool registry when possible so that argument logic
+// stays exclusively in tools.go, not duplicated here.
+func buildScannerArgs(toolName, target, ifaceName string, opts models.ScanOptions) []string {
 	tool, ok := DefaultRegistry.Get(toolName)
 	if ok {
-		return tool.BuildArgs(target, ifaceName, extra)
+		return tool.BuildArgs(target, ifaceName, opts)
 	}
 
 	// Fallback for any unlisted tools — generic best-effort invocation
-	args := []string{toolName, "-u", target, "-json", "-silent"}
-	return append(args, extra...)
+	return []string{toolName, "-u", target, "-json", "-silent"}
 }
 
 // deduplicateTargets removes duplicate entries from a string slice.
@@ -161,7 +165,8 @@ func extractString(obj map[string]interface{}, key string) string {
 }
 
 // ensureInterfaceForScan validates that the requested network interface is active.
-// For tun0, it additionally confirms that a Chisel reverse tunnel agent is connected.
+// For tun0, it additionally confirms that a Chisel reverse tunnel agent is connected
+// and autonomously adds routes for CIDR targets to ensure traffic flows through the tunnel.
 func ensureInterfaceForScan(toolName, target, ifaceName string) error {
 	if ifaceName == "" {
 		return nil // No interface specified — use system default routing
@@ -183,7 +188,7 @@ func ensureInterfaceForScan(toolName, target, ifaceName string) error {
 		return fmt.Errorf("selected interface %q is not active or does not exist", ifaceName)
 	}
 
-	// Extra validation for tun0 (Chisel L3 tunnel)
+	// Extra validation & autonomous routing for tun0 (Chisel L3 tunnel)
 	if ifaceName == "tun0" {
 		_, _, connected, err := network.GetActiveTUNIP()
 		if err != nil {
@@ -191,6 +196,18 @@ func ensureInterfaceForScan(toolName, target, ifaceName string) error {
 		}
 		if !connected {
 			return fmt.Errorf("tun0 selected but no active Chisel reverse tunnel agent is connected")
+		}
+
+		// Autonomous Route Injection: If target is a CIDR, ensure the route exists
+		// Note: We ignore errors from 'ip route add' because it might already exist
+		if strings.Contains(target, "/") {
+			subnets := strings.Split(target, "\n")
+			for _, s := range subnets {
+				s = strings.TrimSpace(s)
+				if strings.Contains(s, "/") {
+					_ = exec.Command("ip", "route", "add", s, "dev", "tun0").Run()
+				}
+			}
 		}
 	}
 	return nil
