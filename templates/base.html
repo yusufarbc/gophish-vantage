@@ -34,7 +34,9 @@
     <link rel="stylesheet" href="/css/vantage_core.css">
     
     <!-- Alpine.js for interactive UI -->
+    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     
     <!-- Legacy Support (Bootstrap fallback) -->
     <link href="/css/dist/vantage.css" rel="stylesheet" type="text/css">
@@ -268,7 +270,31 @@
         // ── Fetch API wrapper ──────────────────────────────────────────────
         var _origFetch = window.fetch;
         window.fetch = function (input, init) {
-            return _origFetch.apply(this, arguments).then(function (response) {
+            // Support both string and Request object
+            var url = typeof input === 'string' ? input : input.url;
+            
+            // Only inject for our own API
+            if (url && (url.startsWith('/api/') || url.startsWith(window.location.origin + '/api/'))) {
+                init = init || {};
+                var headers = {};
+                
+                // Extract existing headers if it's a Headers object or a plain object
+                if (init.headers) {
+                    if (init.headers instanceof Headers) {
+                        init.headers.forEach((v, k) => { headers[k] = v; });
+                    } else {
+                        headers = Object.assign({}, init.headers);
+                    }
+                }
+                
+                // Inject credentials if available
+                if (typeof csrf_token !== 'undefined' && !headers['X-CSRF-Token']) headers['X-CSRF-Token'] = csrf_token;
+                if (typeof user !== 'undefined' && user.api_key && !headers['Authorization']) headers['Authorization'] = user.api_key;
+                
+                init.headers = headers;
+            }
+
+            return _origFetch.call(this, input, init).then(function (response) {
                 if (!response.ok && (response.status >= 400)) {
                     // Clone so the caller can still read the body
                     response.clone().json().then(function (body) {
@@ -282,10 +308,14 @@
                 }
                 return response;
             }).catch(function (err) {
-                dispatchErrorToast('\u26a0\ufe0f Network error: ' + err.message);
+                // Suppress toast for aborted requests
+                if (err.name !== 'AbortError') {
+                    dispatchErrorToast('\u26a0\ufe0f Network error: ' + err.message);
+                }
                 return Promise.reject(err);
             });
         };
+
 
         // ── jQuery $.ajax global handler (used by legacy Gophish pages) ────
         if (window.jQuery) {

@@ -107,13 +107,15 @@
                     <a href="/?tab=resilience-admin" class="flex items-center justify-between py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">
                         <span>Vantage Agent</span>
                         <div class="flex items-center">
-                            <span class="relative flex h-2.5 w-2.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                            <span class="relative flex h-2 w-2">
+                                <span id="sidebar-agent-ping" class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-0"></span>
+                                <span id="sidebar-agent-dot" class="relative inline-flex rounded-full h-2 w-2 bg-gray-600 shadow-none transition-all duration-500"></span>
                             </span>
                         </div>
                     </a>
-                    <a href="/webhooks" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Notification Settings</a>
+
+                    <a href="/?tab=notifications" class="block py-2.5 px-4 rounded-lg text-base text-vantage-text-dim hover:text-vantage-accent hover:bg-vantage-accent/5 transition-colors">Notification Settings</a>
+
                 </div>
             </div>
         </div>

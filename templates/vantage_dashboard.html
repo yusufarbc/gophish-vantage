@@ -170,53 +170,86 @@
                     </div>
                 </div>
 
-                <!-- Resilience Admin Tab -->                 <div id="tab-resilience-admin" class="tab-content hidden p-8 space-y-6">
-                    <div class="glass-card p-5 rounded-lg border border-vantage-border">
-                        <h3 class="text-lg font-bold mb-4">Administration</h3>
+                <!-- Notification Settings Tab -->
+                <div id="tab-notifications" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-8 rounded-2xl border border-vantage-border shadow-2xl">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 rounded-2xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20 shadow-lg shadow-yellow-400/5">
+                                <svg class="w-7 h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black uppercase tracking-widest text-vantage-text italic">Notification Center</h3>
+                                <p class="text-sm text-vantage-text-dim/70">Configure tactical alerts for high-priority operational events.</p>
+                            </div>
+                        </div>
                         
-                        <div class="space-y-6">
-                            <!-- Notification Settings -->
-                            <div class="p-4 bg-vantage-sidebar/50 rounded-xl border border-vantage-border shadow-inner">
-                                <div class="flex items-center gap-4 mb-6">
-                                    <div class="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20">
-                                        <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <div class="space-y-8">
+                            <div class="p-6 bg-vantage-sidebar/30 rounded-2xl border border-vantage-border/50">
+                                <label class="flex items-center gap-4 text-lg font-bold text-vantage-text cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input type="checkbox" id="notify-enabled" class="peer h-6 w-6 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent transition-all">
                                     </div>
-                                    <h4 class="text-lg font-black uppercase tracking-widest italic text-vantage-text">Notification Center</h4>
+                                    <span class="group-hover:text-vantage-accent transition-colors">Enable High-Priority Tactical Notifications</span>
+                                </label>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-black text-vantage-text-dim uppercase tracking-[0.2em]">Slack Webhook Vector</label>
+                                    <input id="notify-slack" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-6 py-4 text-base outline-none focus:border-vantage-accent transition-all placeholder:opacity-30" placeholder="https://hooks.slack.com/services/…">
                                 </div>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div class="col-span-2">
-                                        <label class="flex items-center gap-3 text-base font-medium text-vantage-text cursor-pointer">
-                                            <input type="checkbox" id="notify-enabled" class="w-5 h-5 rounded border-vantage-border bg-vantage-bg text-vantage-accent focus:ring-vantage-accent">
-                                            <span>Enable High-Priority Tactical Notifications</span>
-                                        </label>
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-black text-vantage-text-dim uppercase tracking-[0.2em]">Telegram Bot Token</label>
+                                    <input id="notify-tg-token" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-6 py-4 text-base outline-none focus:border-vantage-accent transition-all placeholder:opacity-30" placeholder="0000000000:AAEb…">
+                                </div>
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-black text-vantage-text-dim uppercase tracking-[0.2em]">Telegram Tactical Chat ID</label>
+                                    <input id="notify-tg-chat" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-6 py-4 text-base outline-none focus:border-vantage-accent transition-all placeholder:opacity-30" placeholder="-100123456789">
+                                </div>
+                                <div class="flex items-end">
+                                    <button onclick="saveNotifyConfig()" class="w-full bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black py-5 rounded-xl text-base transition-all active:scale-95 shadow-xl shadow-vantage-accent/20 uppercase tracking-widest italic">
+                                        Save Tactical Config
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resilience Admin Tab (Vantage Agent) -->
+                <div id="tab-resilience-admin" class="tab-content hidden p-8 space-y-6">
+                    <div class="glass-card p-8 rounded-2xl border border-vantage-border shadow-2xl">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-2xl font-black uppercase tracking-widest text-vantage-text italic">Agent Administration</h3>
+                            <div id="tunnel-server-badge" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-vantage-card border border-vantage-border text-vantage-text/40 shadow-inner">
+                                Operational Status
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-8">
+                            <!-- Vantage Agent Status -->
+                            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border shadow-inner flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-black text-vantage-text uppercase tracking-widest italic mb-2">Vantage Engagement Agent</h4>
+                                    <p class="text-xs text-vantage-text-dim/70">Operational status of the L3 reverse tunnel tactical engine.</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-3 bg-vantage-card px-4 py-2 rounded-lg border border-vantage-border">
+                                        <div id="admin-agent-dot" class="w-2.5 h-2.5 rounded-full bg-vantage-text-dim/20 shadow-inner"></div>
+                                        <span id="admin-agent-label" class="text-xs text-vantage-text-dim font-black uppercase tracking-tighter">Inactive Sector Access</span>
                                     </div>
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Slack Webhook URL</label>
-                                        <input id="notify-slack" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="https://hooks.slack.com/services/â€¦">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Telegram Bot Token</label>
-                                        <input id="notify-tg-token" type="password" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="0000000000:AAEbâ€¦">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-black text-vantage-text-dim uppercase tracking-widest">Telegram Chat ID</label>
-                                        <input id="notify-tg-chat" type="text" class="w-full bg-vantage-bg border border-vantage-border rounded-xl px-4 py-3 text-sm outline-none focus:border-vantage-accent transition-all" placeholder="-100123456789">
-                                    </div>
-                                    <div class="flex items-end">
-                                        <button onclick="saveNotifyConfig()" class="w-full bg-vantage-accent hover:bg-vantage-accent/90 text-slate-900 font-black py-4 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-vantage-accent/20">Save Operational Settings</button>
+                                    <div class="flex gap-2">
+                                        <button onclick="startTunnel()" class="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-lg border border-emerald-500/20 transition-all" title="Start Tunnel Server">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                        </button>
+                                        <button onclick="stopTunnel()" class="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg border border-red-500/20 transition-all" title="Stop Tunnel Server">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"/></svg>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Vantage Agent Status -->
-                            <div class="p-6 bg-vantage-bg/30 rounded-xl border border-vantage-border shadow-inner">
-                                <h4 class="text-sm font-black text-vantage-text uppercase tracking-widest italic mb-2">Vantage Engagement Agent</h4>
-                                <p class="text-xs text-vantage-text-dim/70">Operational status of the L3 reverse tunnel tactical engine.</p>
-                                <div class="mt-4 flex items-center gap-3">
-                                    <div id="admin-agent-dot" class="w-2.5 h-2.5 rounded-full bg-vantage-text-dim/20 shadow-inner"></div>
-                                    <span id="admin-agent-label" class="text-xs text-vantage-text-dim font-black uppercase tracking-tighter">Inactive Sector Access</span>
-                                </div>
-                            </div>
+
 
                             <!-- Tactical Agent Deployment -->
                             <div class="glass-card p-6 rounded-xl border border-vantage-accent/20 bg-vantage-accent/5 shadow-lg">
@@ -318,7 +351,8 @@
                 'operating-systems': 'Operating Systems',
                 campaigns: 'Campaigns',
                 'stress-tests': 'Stress Tests',
-                'resilience-admin': 'Administration',
+                'resilience-admin': 'Vantage Agent',
+                'notifications': 'Notification Settings',
                 'osint': 'Surface Intel / OSINT',
                 'interactsh': 'OOB Server / Interactsh'
             };
@@ -332,9 +366,11 @@
             if (tabName === 'vulnerabilities') loadVulnerabilitySummary();
             if (tabName === 'campaigns') loadCampaigns();
             if (tabName === 'stress-tests') initStressTests();
+            if (tabName === 'notifications') loadNotifyConfig();
             if (tabName === 'osint') loadOSINT();
             if (tabName === 'interactsh') initInteractsh();
         }
+
 
         function toggleMenuGroup(groupId) {
             const group = document.getElementById(groupId);
@@ -461,38 +497,50 @@
                 if (!resp.ok) return;
                 const data = await resp.json();
 
-                const dot = document.getElementById('agent-dot') || document.getElementById('admin-agent-dot');
-                const label = document.getElementById('agent-label') || document.getElementById('admin-agent-label');
-                const ip = document.getElementById('agent-ip') || document.getElementById('admin-agent-ip');
+                const dot = document.getElementById('admin-agent-dot');
+                const label = document.getElementById('admin-agent-label');
                 const badge = document.getElementById('tunnel-server-badge');
+                
+                // Sidebar indicators
+                const sideDot = document.getElementById('sidebar-agent-dot');
+                const sidePing = document.getElementById('sidebar-agent-ping');
 
-                if (dot && label) {
-                    if (data.agent_connected) {
-                        dot.className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse transition-colors duration-500';
-                        label.textContent = 'Agent Connected';
-                        label.className = 'text-xs text-green-400 font-semibold';
-                        if (ip) ip.textContent = `${data.tun_interface} — ${data.tun_ip}`;
-                    } else {
-                        dot.className = 'w-2 h-2 rounded-full bg-gray-600 transition-colors duration-500';
-                        label.textContent = 'Disconnected';
-                        label.className = 'text-xs text-gray-500';
-                        if (ip) ip.textContent = '';
+                if (data.agent_connected) {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.5)]';
+                    if (label) {
+                        label.textContent = 'Agent Connected (' + (data.tun_ip || 'active') + ')';
+                        label.className = 'text-xs text-green-400 font-bold uppercase tracking-tighter';
+                    }
+                    if (sideDot) {
+                        sideDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]';
+                        if (sidePing) sidePing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+                    }
+                } else {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-vantage-text-dim/20 shadow-inner';
+                    if (label) {
+                        label.textContent = 'Inactive Sector Access';
+                        label.className = 'text-xs text-vantage-text-dim font-black uppercase tracking-tighter';
+                    }
+                    if (sideDot) {
+                        sideDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-gray-600 shadow-none';
+                        if (sidePing) sidePing.className = 'absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-0';
                     }
                 }
 
                 if (badge) {
                     if (data.server_running) {
-                        badge.textContent = 'Server Running';
+                        badge.textContent = 'Tunnel Server Active';
                         badge.className = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-blue-900/40 text-blue-300 border border-blue-700/40 shadow-lg';
                     } else {
-                        badge.textContent = 'Operational Pause';
+                        badge.textContent = 'Tunnel Server Idle';
                         badge.className = 'px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-vantage-card border border-vantage-border text-vantage-text/40 shadow-inner';
                     }
                 }
             } catch (e) {
-                // Silently fail â€” server may be initializing
+                console.warn('Agent status poll failed:', e);
             }
         }
+
 
         function openTaskModal() {
             document.getElementById('task-modal').classList.remove('hidden');
@@ -854,20 +902,20 @@
 
         async function initDashboard() {
             try {
-                const stats = await fetch('/api/scanner/stats').then(r => r.json());
+                const stats = await fetch('/api/scanner/stats').then(r => r.ok ? r.json() : {}).catch(() => ({}));
                 document.getElementById('stat-total').textContent = stats.total || '0';
                 document.getElementById('stat-critical').textContent = stats.critical || '0';
 
                 // Fetch Vantage campaign count
-                const campaigns = await fetch('/api/campaigns/').then(r => r.json());
-                document.getElementById('stat-campaigns').textContent = (campaigns || []).length;
+                const campaigns = await fetch('/api/campaigns/').then(r => r.ok ? r.json() : []).catch(() => []);
+                document.getElementById('stat-campaigns').textContent = Array.isArray(campaigns) ? campaigns.length : 0;
 
                 // Fetch scanner task stats
-                const tasks = await fetch('/api/scanner/tasks').then(r => r.json());
-                const running = (tasks || []).filter(t => (t.status || '').toLowerCase() === 'running').length;
+                const tasks = await fetch('/api/scanner/tasks').then(r => r.ok ? r.json() : []).catch(() => []);
+                const running = Array.isArray(tasks) ? tasks.filter(t => (t.status || '').toLowerCase() === 'running').length : 0;
                 document.getElementById('stat-scans').textContent = running;
 
-                const mail = await fetch('/api/v1/mail/queue').then(r => r.json());
+                const mail = await fetch('/api/v1/mail/queue').then(r => r.ok ? r.json() : {}).catch(() => ({}));
                 document.getElementById('mail-sent').textContent = mail.sent || 0;
                 document.getElementById('mail-deferred').textContent = mail.deferred || 0;
                 document.getElementById('mail-queued').textContent = mail.queued || 0;
@@ -878,6 +926,7 @@
                 console.error('Dashboard init error:', e);
             }
         }
+
 
         function initCharts() {
             const severityCtx = document.getElementById('severityChart')?.getContext('2d');
